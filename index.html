@@ -15,9 +15,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .hdr h1{font-size:18px;font-weight:500}
 .dot{width:8px;height:8px;border-radius:50%;background:#639922;display:inline-block;margin-right:6px}
 .sub{font-size:13px;color:var(--t2);margin-top:2px}
+.hdr-btns{display:flex;gap:8px}
 .btn{font-size:13px;padding:6px 14px;border:0.5px solid var(--b2);background:transparent;color:var(--t2);border-radius:var(--r1);cursor:pointer;text-decoration:none;display:inline-block}
 .btn:hover{background:var(--bg2)}
-.hdr-btns{display:flex;gap:8px}
 .metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:1.5rem}
 .metric{background:var(--bg2);border-radius:var(--r1);padding:14px 16px}
 .ml{font-size:12px;color:var(--t2);margin-bottom:6px}
@@ -89,139 +89,168 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
   <div id="resultArea"><div class="empty"><span class="spin"></span>Cargando datos...</div></div>
 </div>
-<script>
-var URL_R='https://docs.google.com/spreadsheets/d/e/2PACX-1vTtspEWMBzvbRVDJnaqhIFoBdgFvkvx80i9BlenpBIn94b6DyBYwVLlssqFShYebv9BBfdE4ajL50Yk/pub?gid=0&single=true&output=csv';
-var URL_P='https://docs.google.com/spreadsheets/d/e/2PACX-1vTtspEWMBzvbRVDJnaqhIFoBdgFvkvx80i9BlenpBIn94b6DyBYwVLlssqFShYebv9BBfdE4ajL50Yk/pub?gid=1031286687&single=true&output=csv';
-var REC=[],PRD=[],byReceta={},loaded=false;
 
-function cargarDatos(){
-  loaded=false;
-  document.getElementById('resultArea').innerHTML='<div class="empty"><span class="spin"></span>Cargando datos...</div>';
-  document.getElementById('mTotal').textContent='—';
-  document.getElementById('mPac').textContent='—';
-  document.getElementById('mMeds').textContent='—';
-  document.getElementById('mRet').textContent='—';
-  Promise.all([fetch(URL_R),fetch(URL_P)])
-    .then(function(rs){return Promise.all(rs.map(function(r){return r.text();}));})
-    .then(function(ts){
-      REC=Papa.parse(ts[0],{header:true,skipEmptyLines:true}).data.filter(function(r){return String(r['DNI']||'').trim();});
-      PRD=Papa.parse(ts[1],{header:true,skipEmptyLines:true}).data.filter(function(r){return String(r['ID Receta']||'').trim();});
-      byReceta={};
-      PRD.forEach(function(p){
-        var id=String(p['ID Receta']||'').trim();
-        if(!byReceta[id])byReceta[id]=[];
+<script>
+var URL_R = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTtspEWMBzvbRVDJnaqhIFoBdgFvkvx80i9BlenpBIn94b6DyBYwVLlssqFShYebv9BBfdE4ajL50Yk/pub?gid=0&single=true&output=csv';
+var URL_P = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTtspEWMBzvbRVDJnaqhIFoBdgFvkvx80i9BlenpBIn94b6DyBYwVLlssqFShYebv9BBfdE4ajL50Yk/pub?gid=1031286687&single=true&output=csv';
+
+var REC = [], PRD = [], byReceta = {}, loaded = false;
+
+function cargarDatos() {
+  loaded = false;
+  document.getElementById('resultArea').innerHTML = '<div class="empty"><span class="spin"></span>Cargando datos...</div>';
+  ['mTotal','mPac','mMeds','mRet'].forEach(function(id){ document.getElementById(id).textContent = '—'; });
+  Promise.all([fetch(URL_R), fetch(URL_P)])
+    .then(function(rs) { return Promise.all(rs.map(function(r){ return r.text(); })); })
+    .then(function(ts) {
+      REC = Papa.parse(ts[0], {header:true, skipEmptyLines:true}).data.filter(function(r){ return String(r['DNI']||'').trim(); });
+      PRD = Papa.parse(ts[1], {header:true, skipEmptyLines:true}).data.filter(function(r){ return String(r['ID Receta']||'').trim(); });
+      byReceta = {};
+      PRD.forEach(function(p) {
+        var id = String(p['ID Receta']||'').trim();
+        if (!byReceta[id]) byReceta[id] = [];
         byReceta[id].push(p);
       });
-      loaded=true;
-      var dnis=new Set(REC.map(function(r){return r['DNI'];}));
-      var meds=new Set();PRD.forEach(function(p){if(p['Producto'])meds.add(p['Producto']);});
-      var ret=REC.filter(function(r){return String(r['Fecha Retiro x Paciente']||'').trim();}).length;
-      document.getElementById('mTotal').textContent=REC.length;
-      document.getElementById('mPac').textContent=dnis.size;
-      document.getElementById('mMeds').textContent=meds.size;
-      document.getElementById('mRet').textContent=ret;
-      document.getElementById('resultArea').innerHTML='<div class="empty">Ingresá un DNI para consultar el historial</div>';
+      loaded = true;
+      var dnis = new Set(REC.map(function(r){ return r['DNI']; }));
+      var meds = new Set(); PRD.forEach(function(p){ if(p['Producto']) meds.add(p['Producto']); });
+      var ret = REC.filter(function(r){ return String(r['Fecha Retiro x Paciente']||'').trim(); }).length;
+      document.getElementById('mTotal').textContent = REC.length;
+      document.getElementById('mPac').textContent   = dnis.size;
+      document.getElementById('mMeds').textContent  = meds.size;
+      document.getElementById('mRet').textContent   = ret;
+      document.getElementById('resultArea').innerHTML = '<div class="empty">Ingresá un DNI para consultar el historial</div>';
     })
-    .catch(function(e){
-      document.getElementById('resultArea').innerHTML='<div class="empty">Error al cargar datos: '+e.message+'</div>';
+    .catch(function(e) {
+      document.getElementById('resultArea').innerHTML = '<div class="empty">Error al cargar datos: ' + e.message + '</div>';
     });
 }
 
-function fd(v){
-  if(v===null||v===undefined)return '—';
-  v=String(v).trim();
-  if(!v||v==='NaN')return '—';
-  var d=new Date(v);if(isNaN(d))return v;
-  return d.toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'});
+function fd(v) {
+  if (v === null || v === undefined) return '—';
+  v = String(v).trim();
+  if (!v || v === 'NaN') return '—';
+  var d = new Date(v);
+  if (isNaN(d)) return v;
+  return d.toLocaleDateString('es-AR', {day:'2-digit', month:'2-digit', year:'numeric'});
 }
 
-function getSt(r){
-  var ret=String(r['Fecha Retiro x Paciente']||'').trim();
-  var dis=String(r['Fecha Producto Disponible']||'').trim();
-  var ini=String(r['Fecha Inicio Gestión']||'').trim();
-  if(ret)return {l:'Retirado',c:'ok'};
-  if(dis)return {l:'Disponible',c:'dsp'};
-  if(ini)return {l:'En gestión',c:'pnd'};
-  return {l:'Recibida',c:'pnd'};
+function getSt(r) {
+  if (String(r['Fecha Retiro x Paciente']||'').trim()) return {l:'Retirado',  c:'ok'};
+  if (String(r['Fecha Producto Disponible']||'').trim()) return {l:'Disponible', c:'dsp'};
+  if (String(r['Fecha Inicio Gestión']||'').trim())      return {l:'En gestión', c:'pnd'};
+  return {l:'Recibida', c:'pnd'};
 }
 
-function inis(r){return((r['Apellidos']||'').charAt(0)+(r['Nombres']||'').charAt(0)).toUpperCase()||'?';}
+function inis(r) {
+  return ((r['Apellidos']||'').charAt(0) + (r['Nombres']||'').charAt(0)).toUpperCase() || '?';
+}
 
-function buildProds(idRec){
-  var prods=byReceta[String(idRec||'').trim()]||[];
-  if(!prods.length)return '';
-  var rows='';
-  prods.forEach(function(p){
-    rows+='<tr><td>'+(p['Producto']||'—')+'</td><td><span class="cp">'+(p['Categoría']||'—')+'</span></td>'
-      +'<td style="text-align:center">'+(p['Cantidad Prescripta']||'—')+'</td>'
-      +'<td style="color:var(--t2)">'+(p['Origen Producto']||'—')+'</td></tr>';
+function buildProds(idRec) {
+  var prods = byReceta[String(idRec||'').trim()] || [];
+  if (!prods.length) return '';
+  var rows = '';
+  prods.forEach(function(p) {
+    rows += '<tr><td>' + (p['Producto']||'—') + '</td>'
+          + '<td><span class="cp">' + (p['Categoría']||'—') + '</span></td>'
+          + '<td style="text-align:center">' + (p['Cantidad Prescripta']||'—') + '</td>'
+          + '<td style="color:var(--t2)">' + (p['Origen Producto']||'—') + '</td></tr>';
   });
-  return '<div class="ps2"><div class="pt">Medicamentos ('+prods.length+')</div>'
-    +'<table class="ptbl"><thead><tr><th>Producto</th><th>Categoría</th><th style="text-align:center">Cant.</th><th>Origen</th></tr></thead>'
-    +'<tbody>'+rows+'</tbody></table></div>';
+  return '<div class="ps2"><div class="pt">Medicamentos (' + prods.length + ')</div>'
+       + '<table class="ptbl"><thead><tr><th>Producto</th><th>Categoría</th>'
+       + '<th style="text-align:center">Cant.</th><th>Origen</th></tr></thead>'
+       + '<tbody>' + rows + '</tbody></table></div>';
 }
 
-function tog(idx){
-  document.getElementById('rb'+idx).classList.toggle('open');
-  document.getElementById('cv'+idx).classList.toggle('open');
+function tog(idx) {
+  document.getElementById('rb' + idx).classList.toggle('open');
+  document.getElementById('cv' + idx).classList.toggle('open');
 }
 
-function buscar(dni){
-  if(!loaded){setTimeout(function(){buscar(dni);},500);return;}
-  var dniStr=String(dni).trim();
-  var recetas=REC.filter(function(r){return String(r['DNI']).trim()===dniStr;});
-  var area=document.getElementById('resultArea');
-  if(!recetas.length){area.innerHTML='<div class="empty">No se encontró paciente con DNI '+dniStr+'</div>';return;}
-  var p0=recetas[0];
-  var conRet=recetas.filter(function(r){return String(r['Fecha Retiro x Paciente']||'').trim();}).length;
-  var MONTHS=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-  function mo(s){var p=String(s).toLowerCase().split(' ');return(parseInt(p[1])||0)*12+MONTHS.indexOf(p[0]);}
-  var meses=[];
-  recetas.forEach(function(r){var m=r['Mes-Año'];if(m&&meses.indexOf(m)<0)meses.push(m);});
-  meses.sort(function(a,b){return mo(a)-mo(b);});
-  var tMeds=new Set();
-  recetas.forEach(function(r){(byReceta[String(r['ID Receta']||'').trim()]||[]).forEach(function(p){if(p['Producto'])tMeds.add(p['Producto']);});});
-
-  var html='<div class="pcrd"><div class="phdr"><div class="av">'+inis(p0)+'</div>'
-    +'<div><div class="pn">'+(p0['Apellidos']||'')+', '+(p0['Nombres']||'')+'</div>'
-    +'<div class="pd">DNI: '+dniStr+'</div></div></div>'
-    +'<div class="psts">'
-    +'<div class="ps">Recetas: <strong>'+recetas.length+'</strong></div>'
-    +'<div class="ps">Retiradas: <strong>'+conRet+'</strong></div>'
-    +'<div class="ps">Medicamentos: <strong>'+tMeds.size+'</strong></div>'
-    +'<div class="ps">Período: <strong>'+(meses.length?meses[0]+(meses.length>1?' → '+meses[meses.length-1]:''):'—')+'</strong></div>'
-    +'</div></div>'
-    +'<div class="stit">Historial de recetas ('+recetas.length+')</div>';
-
-  recetas.forEach(function(r,i){
-    var s=getSt(r);
-    html+='<div class="ri">'
-      +'<div class="rh" data-i="'+i+'" onclick="tog(parseInt(this.dataset.i))">'
-      +'<span class="cv" id="cv'+i+'">&#9658;</span>'
-      +'<span class="rid">'+String(r['ID Receta']||'')+'</span>'
-      +'<span class="rd">'+fd(r['Fecha Recepción'])+'</span>'
-      +'<span class="bdg '+s.c+'">'+s.l+'</span>'
-      +'</div>'
-      +'<div class="rb" id="rb'+i+'">'
-      +'<div class="dg">'
-      +'<div><div class="dl">Recepción</div><div class="dv">'+fd(r['Fecha Recepción'])+'</div></div>'
-      +'<div><div class="dl">Inicio gestión</div><div class="dv">'+fd(r['Fecha Inicio Gestión'])+'</div></div>'
-      +'<div><div class="dl">Disponible</div><div class="dv">'+fd(r['Fecha Producto Disponible'])+'</div></div>'
-      +'<div><div class="dl">Retiro</div><div class="dv">'+fd(r['Fecha Retiro x Paciente'])+'</div></div>'
-      +'</div>'
-      +(r['Médico']?'<div class="mdr">Médico: <strong>'+r['Médico']+'</strong></div>':'')
-      +(r['Observaciones']?'<div class="obsv">'+r['Observaciones']+'</div>':'')
-      +buildProds(r['ID Receta'])
-      +'</div></div>';
+function buscar(dni) {
+  if (!loaded) { setTimeout(function(){ buscar(dni); }, 500); return; }
+  var dniStr = String(dni).trim();
+  var recetas = REC.filter(function(r){ return String(r['DNI']).trim() === dniStr; });
+  var area = document.getElementById('resultArea');
+  if (!recetas.length) {
+    area.innerHTML = '<div class="empty">No se encontró paciente con DNI ' + dniStr + '</div>';
+    return;
+  }
+  var p0 = recetas[0];
+  var conRet = recetas.filter(function(r){ return String(r['Fecha Retiro x Paciente']||'').trim(); }).length;
+  var MONTHS = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  function mo(s){ var p = String(s).toLowerCase().split(' '); return (parseInt(p[1])||0)*12 + MONTHS.indexOf(p[0]); }
+  var meses = [];
+  recetas.forEach(function(r){ var m = r['Mes-Año']; if (m && meses.indexOf(m) < 0) meses.push(m); });
+  meses.sort(function(a,b){ return mo(a) - mo(b); });
+  var tMeds = new Set();
+  recetas.forEach(function(r){
+    (byReceta[String(r['ID Receta']||'').trim()]||[]).forEach(function(p){ if(p['Producto']) tMeds.add(p['Producto']); });
   });
 
-  area.innerHTML=html;
+  var frag = document.createDocumentFragment();
+
+  // Patient card
+  var pcrd = document.createElement('div'); pcrd.className = 'pcrd';
+  pcrd.innerHTML = '<div class="phdr"><div class="av">' + inis(p0) + '</div>'
+    + '<div><div class="pn">' + (p0['Apellidos']||'') + ', ' + (p0['Nombres']||'') + '</div>'
+    + '<div class="pd">DNI: ' + dniStr + '</div></div></div>'
+    + '<div class="psts">'
+    + '<div class="ps">Recetas: <strong>' + recetas.length + '</strong></div>'
+    + '<div class="ps">Retiradas: <strong>' + conRet + '</strong></div>'
+    + '<div class="ps">Medicamentos: <strong>' + tMeds.size + '</strong></div>'
+    + '<div class="ps">Período: <strong>' + (meses.length ? meses[0] + (meses.length > 1 ? ' → ' + meses[meses.length-1] : '') : '—') + '</strong></div>'
+    + '</div>';
+  frag.appendChild(pcrd);
+
+  // Title
+  var tit = document.createElement('div'); tit.className = 'stit';
+  tit.textContent = 'Historial de recetas (' + recetas.length + ')';
+  frag.appendChild(tit);
+
+  // Recetas — built with DOM, no innerHTML onclick
+  recetas.forEach(function(r, i) {
+    var s = getSt(r);
+    var ri = document.createElement('div'); ri.className = 'ri';
+
+    var rh = document.createElement('div'); rh.className = 'rh';
+    rh.innerHTML = '<span class="cv" id="cv' + i + '">&#9658;</span>'
+      + '<span class="rid">' + String(r['ID Receta']||'') + '</span>'
+      + '<span class="rd">' + fd(r['Fecha Recepción']) + '</span>'
+      + '<span class="bdg ' + s.c + '">' + s.l + '</span>';
+    rh.addEventListener('click', (function(idx){ return function(){ tog(idx); }; })(i));
+
+    var rb = document.createElement('div'); rb.className = 'rb'; rb.id = 'rb' + i;
+    rb.innerHTML = '<div class="dg">'
+      + '<div><div class="dl">Recepción</div><div class="dv">' + fd(r['Fecha Recepción']) + '</div></div>'
+      + '<div><div class="dl">Inicio gestión</div><div class="dv">' + fd(r['Fecha Inicio Gestión']) + '</div></div>'
+      + '<div><div class="dl">Disponible</div><div class="dv">' + fd(r['Fecha Producto Disponible']) + '</div></div>'
+      + '<div><div class="dl">Retiro</div><div class="dv">' + fd(r['Fecha Retiro x Paciente']) + '</div></div>'
+      + '</div>'
+      + (r['Médico'] ? '<div class="mdr">Médico: <strong>' + r['Médico'] + '</strong></div>' : '')
+      + (r['Observaciones'] ? '<div class="obsv">' + r['Observaciones'] + '</div>' : '')
+      + buildProds(r['ID Receta']);
+
+    ri.appendChild(rh);
+    ri.appendChild(rb);
+    frag.appendChild(ri);
+  });
+
+  area.innerHTML = '';
+  area.appendChild(frag);
 }
 
-document.getElementById('searchBtn').addEventListener('click',function(){var v=document.getElementById('dniInput').value.trim();if(v)buscar(v);});
-document.getElementById('dniInput').addEventListener('keydown',function(e){if(e.key==='Enter'){var v=e.target.value.trim();if(v)buscar(v);}});
-document.getElementById('clearBtn').addEventListener('click',function(){document.getElementById('dniInput').value='';document.getElementById('resultArea').innerHTML='<div class="empty">Ingresá un DNI para consultar el historial</div>';});
-document.getElementById('recargarBtn').addEventListener('click',cargarDatos);
+document.getElementById('searchBtn').addEventListener('click', function(){
+  var v = document.getElementById('dniInput').value.trim(); if (v) buscar(v);
+});
+document.getElementById('dniInput').addEventListener('keydown', function(e){
+  if (e.key === 'Enter') { var v = e.target.value.trim(); if (v) buscar(v); }
+});
+document.getElementById('clearBtn').addEventListener('click', function(){
+  document.getElementById('dniInput').value = '';
+  document.getElementById('resultArea').innerHTML = '<div class="empty">Ingresá un DNI para consultar el historial</div>';
+});
+document.getElementById('recargarBtn').addEventListener('click', cargarDatos);
 
 cargarDatos();
 </script>
