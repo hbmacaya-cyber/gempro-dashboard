@@ -89,8 +89,11 @@ h1 .dot{width:8px;height:8px;border-radius:50%;background:#639922;display:inline
 <body>
 <div class="wrap">
   <div class="hdr">
-    <div><h1><span class="dot"></span>GEMPRO Farma — HIG</h1><p class="sub">Gestión de recetas y medicamentos</p></div>
-    <button class="btn" onclick="loadData()">&#8635; Actualizar datos</button>
+    <div><h1><span class="dot"></span>GEMPRO Farma — HIG</h1><p class="sub">Consulta por paciente</p></div>
+    <div style="display:flex;gap:8px">
+      <a href="general.html" class="btn" style="text-decoration:none;font-size:13px;padding:6px 14px;border:0.5px solid rgba(0,0,0,0.22);border-radius:8px;color:inherit">&#9998; Análisis general</a>
+      <button class="btn" onclick="loadData()">&#8635; Actualizar</button>
+    </div>
   </div>
   <div class="metrics">
     <div class="metric"><div class="ml">Total recetas</div><div class="mv" id="mTotal">0</div></div>
