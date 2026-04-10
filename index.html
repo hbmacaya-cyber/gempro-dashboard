@@ -27,27 +27,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .pcrd{background:var(--bg1);border:0.5px solid var(--b1);border-radius:var(--r2);padding:1rem 1.25rem;margin-bottom:1rem}
 .phdr{display:flex;align-items:center;gap:12px;margin-bottom:14px}
 .av{width:44px;height:44px;border-radius:50%;background:#B5D4F4;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:500;color:#0C447C;flex-shrink:0}
-.pn{font-size:16px;font-weight:500}
-.pd{font-size:13px;color:var(--t2)}
+.pn{font-size:16px;font-weight:500}.pd{font-size:13px;color:var(--t2)}
 .psts{display:flex;gap:16px;flex-wrap:wrap;border-top:0.5px solid var(--b1);padding-top:12px}
-.ps{font-size:13px;color:var(--t2)}
-.ps strong{color:var(--t1);font-weight:500}
+.ps{font-size:13px;color:var(--t2)}.ps strong{color:var(--t1);font-weight:500}
 .stit{font-size:11px;font-weight:500;color:var(--t2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em}
 .ri{border:0.5px solid var(--b1);border-radius:var(--r1);overflow:hidden;margin-bottom:8px}
 .rh{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--bg2);cursor:pointer;flex-wrap:wrap}
-.rid{font-size:13px;font-weight:500;flex:1;min-width:0}
-.rd{font-size:12px;color:var(--t2)}
+.rid{font-size:13px;font-weight:500;flex:1;min-width:0}.rd{font-size:12px;color:var(--t2)}
 .bdg{font-size:11px;padding:3px 8px;border-radius:20px;font-weight:500}
-.ok{background:#EAF3DE;color:#3B6D11}
-.pnd{background:#FAEEDA;color:#854F0B}
-.dsp{background:#E6F1FB;color:#185FA5}
-.rb{padding:12px 14px;display:none;border-top:0.5px solid var(--b1)}
-.rb.open{display:block}
+.ok{background:#EAF3DE;color:#3B6D11}.pnd{background:#FAEEDA;color:#854F0B}.dsp{background:#E6F1FB;color:#185FA5}
+.rb{padding:12px 14px;display:none;border-top:0.5px solid var(--b1)}.rb.open{display:block}
 .dg{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:12px}
-.dl{font-size:11px;color:var(--t2);margin-bottom:2px}
-.dv{font-size:13px;font-weight:500}
-.mdr{font-size:12px;color:var(--t2);margin-bottom:10px}
-.mdr strong{color:var(--t1)}
+.dl{font-size:11px;color:var(--t2);margin-bottom:2px}.dv{font-size:13px;font-weight:500}
+.mdr{font-size:12px;color:var(--t2);margin-bottom:10px}.mdr strong{color:var(--t1)}
 .obsv{font-size:12px;color:var(--t2);margin-top:4px;font-style:italic}
 .ps2{margin-top:10px;border-top:0.5px solid var(--b1);padding-top:10px}
 .pt{font-size:11px;font-weight:500;color:var(--t2);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px}
@@ -56,11 +48,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .ptbl td{padding:5px 8px;border-bottom:0.5px solid var(--b1)}
 .ptbl tr:last-child td{border-bottom:none}
 .cp{font-size:10px;padding:2px 6px;border-radius:10px;background:var(--bg3);color:var(--t2)}
-.cv{font-size:11px;transition:transform .2s;display:inline-block;color:var(--t3)}
-.cv.open{transform:rotate(90deg)}
+.cv{font-size:11px;transition:transform .2s;display:inline-block;color:var(--t3)}.cv.open{transform:rotate(90deg)}
 .empty{text-align:center;padding:3rem 1rem;color:var(--t3);font-size:14px}
 .spin{display:inline-block;width:16px;height:16px;border:2px solid var(--b1);border-top-color:#378ADD;border-radius:50%;animation:spin .8s linear infinite;margin-right:8px;vertical-align:middle}
 @keyframes spin{to{transform:rotate(360deg)}}
+.errbox{background:#FCEBEB;border:0.5px solid #F09595;border-radius:var(--r1);padding:1rem;font-size:13px;color:#501313;margin-bottom:1rem}
 </style>
 </head>
 <body>
@@ -75,6 +67,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <button class="btn" id="btnActualizar">&#8635; Actualizar</button>
     </div>
   </div>
+  <div id="errArea"></div>
   <div class="metrics">
     <div class="metric"><div class="ml">Total recetas</div><div class="mv" id="mTotal">—</div></div>
     <div class="metric"><div class="ml">Pacientes</div><div class="mv" id="mPac">—</div></div>
@@ -90,39 +83,33 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div>
 
 <script>
-// ---- URLs Google Sheets CSV ----
 var URL_R = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTtspEWMBzvbRVDJnaqhIFoBdgFvkvx80i9BlenpBIn94b6DyBYwVLlssqFShYebv9BBfdE4ajL50Yk/pub?gid=0&single=true&output=csv';
 var URL_P = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTtspEWMBzvbRVDJnaqhIFoBdgFvkvx80i9BlenpBIn94b6DyBYwVLlssqFShYebv9BBfdE4ajL50Yk/pub?gid=1031286687&single=true&output=csv';
 
-// ---- Estado global ----
-var REC = [];
-var PRD = [];
-var BY_RECETA = {};
-var loaded = false;
+var REC = [], PRD = [], BY_RECETA = {}, loaded = false;
 
-// ---- Parseo CSV manual robusto ----
-function parsearCSV(texto) {
-  var lineas = texto.split('\n');
-  if (lineas.length < 2) return [];
-  var headers = splitCSVLine(lineas[0]);
-  var resultado = [];
-  for (var i = 1; i < lineas.length; i++) {
-    var linea = lineas[i].trim();
-    if (!linea) continue;
-    var cols = splitCSVLine(linea);
-    var fila = {};
-    for (var j = 0; j < headers.length; j++) {
-      fila[headers[j].trim()] = (cols[j] || '').trim();
-    }
-    resultado.push(fila);
-  }
-  return resultado;
+function mostrarError(msg) {
+  document.getElementById('errArea').innerHTML = '<div class="errbox">Error al cargar datos: ' + msg + '<br><small>Verificá que las hojas estén publicadas en Google Sheets.</small></div>';
+  document.getElementById('resultArea').innerHTML = '<div class="empty">No se pudieron cargar los datos.</div>';
 }
 
-function splitCSVLine(line) {
-  var cols = [];
-  var cur = '';
-  var inQ = false;
+function fetchCSV(url) {
+  return new Promise(function(resolve, reject) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    xhr.timeout = 15000;
+    xhr.onload = function() {
+      if (xhr.status === 200) { resolve(xhr.responseText); }
+      else { reject(new Error('HTTP ' + xhr.status + ' al cargar ' + url)); }
+    };
+    xhr.onerror = function() { reject(new Error('Error de red. ¿La hoja está publicada?')); };
+    xhr.ontimeout = function() { reject(new Error('Timeout: Google Sheets tardó demasiado.')); };
+    xhr.send();
+  });
+}
+
+function splitLine(line) {
+  var cols = [], cur = '', inQ = false;
   for (var i = 0; i < line.length; i++) {
     var c = line[i];
     if (c === '"') { inQ = !inQ; }
@@ -133,67 +120,75 @@ function splitCSVLine(line) {
   return cols;
 }
 
-// ---- Carga de datos ----
+function parsearCSV(texto) {
+  var lineas = texto.replace(/\r/g, '').split('\n');
+  if (lineas.length < 2) return [];
+  var headers = splitLine(lineas[0]);
+  var resultado = [];
+  for (var i = 1; i < lineas.length; i++) {
+    var linea = lineas[i].trim();
+    if (!linea) continue;
+    var cols = splitLine(linea);
+    var fila = {};
+    for (var j = 0; j < headers.length; j++) {
+      fila[headers[j].trim()] = (cols[j] || '').trim();
+    }
+    if (fila[headers[0].trim()]) resultado.push(fila);
+  }
+  return resultado;
+}
+
+function procesarDatos(textoR, textoP) {
+  REC = parsearCSV(textoR).filter(function(r) { return r['DNI'] && r['DNI'].trim(); });
+  PRD = parsearCSV(textoP).filter(function(r) { return r['ID Receta'] && r['ID Receta'].trim(); });
+  BY_RECETA = {};
+  for (var i = 0; i < PRD.length; i++) {
+    var id = PRD[i]['ID Receta'].trim();
+    if (!BY_RECETA[id]) BY_RECETA[id] = [];
+    BY_RECETA[id].push(PRD[i]);
+  }
+  loaded = true;
+  var dnis = {}, meds = {}, ret = 0;
+  for (var i = 0; i < REC.length; i++) {
+    dnis[REC[i]['DNI']] = 1;
+    if (REC[i]['Fecha Retiro x Paciente'] && REC[i]['Fecha Retiro x Paciente'].trim()) ret++;
+  }
+  for (var i = 0; i < PRD.length; i++) { if (PRD[i]['Producto']) meds[PRD[i]['Producto']] = 1; }
+  document.getElementById('mTotal').textContent = REC.length;
+  document.getElementById('mPac').textContent   = Object.keys(dnis).length;
+  document.getElementById('mMeds').textContent  = Object.keys(meds).length;
+  document.getElementById('mRet').textContent   = ret;
+  document.getElementById('errArea').innerHTML  = '';
+  document.getElementById('resultArea').innerHTML = '<div class="empty">Ingresá un DNI para consultar el historial</div>';
+}
+
 function cargarDatos() {
   loaded = false;
-  document.getElementById('resultArea').innerHTML = '<div class="empty"><span class="spin"></span>Cargando datos...</div>';
-  document.getElementById('mTotal').textContent = '—';
-  document.getElementById('mPac').textContent = '—';
-  document.getElementById('mMeds').textContent = '—';
-  document.getElementById('mRet').textContent = '—';
+  document.getElementById('errArea').innerHTML = '';
+  document.getElementById('resultArea').innerHTML = '<div class="empty"><span class="spin"></span>Cargando datos desde Google Sheets...</div>';
+  ['mTotal','mPac','mMeds','mRet'].forEach(function(id) { document.getElementById(id).textContent = '—'; });
 
-  var p1 = fetch(URL_R).then(function(r) { return r.text(); });
-  var p2 = fetch(URL_P).then(function(r) { return r.text(); });
-
-  Promise.all([p1, p2]).then(function(textos) {
-    REC = parsearCSV(textos[0]).filter(function(r) { return r['DNI'] && r['DNI'].trim(); });
-    PRD = parsearCSV(textos[1]).filter(function(r) { return r['ID Receta'] && r['ID Receta'].trim(); });
-
-    BY_RECETA = {};
-    for (var i = 0; i < PRD.length; i++) {
-      var id = PRD[i]['ID Receta'].trim();
-      if (!BY_RECETA[id]) BY_RECETA[id] = [];
-      BY_RECETA[id].push(PRD[i]);
-    }
-
-    loaded = true;
-
-    var dnis = {};
-    var meds = {};
-    var ret = 0;
-    for (var i = 0; i < REC.length; i++) {
-      dnis[REC[i]['DNI']] = 1;
-      if (REC[i]['Fecha Retiro x Paciente'] && REC[i]['Fecha Retiro x Paciente'].trim()) ret++;
-    }
-    for (var i = 0; i < PRD.length; i++) {
-      if (PRD[i]['Producto']) meds[PRD[i]['Producto']] = 1;
-    }
-
-    document.getElementById('mTotal').textContent = REC.length;
-    document.getElementById('mPac').textContent   = Object.keys(dnis).length;
-    document.getElementById('mMeds').textContent  = Object.keys(meds).length;
-    document.getElementById('mRet').textContent   = ret;
-    document.getElementById('resultArea').innerHTML = '<div class="empty">Ingresá un DNI para consultar el historial</div>';
-
+  fetchCSV(URL_R).then(function(t1) {
+    return fetchCSV(URL_P).then(function(t2) {
+      procesarDatos(t1, t2);
+    });
   }).catch(function(err) {
-    document.getElementById('resultArea').innerHTML = '<div class="empty">Error al cargar: ' + err.message + '</div>';
+    mostrarError(err.message);
   });
 }
 
-// ---- Utilidades ----
 function fd(v) {
   if (!v) return '—';
   v = String(v).trim();
   if (!v) return '—';
   var d = new Date(v);
-  if (isNaN(d.getTime())) return v;
-  return d.toLocaleDateString('es-AR', {day:'2-digit', month:'2-digit', year:'numeric'});
+  return isNaN(d.getTime()) ? v : d.toLocaleDateString('es-AR', {day:'2-digit',month:'2-digit',year:'numeric'});
 }
 
 function getSt(r) {
-  if (r['Fecha Retiro x Paciente'] && r['Fecha Retiro x Paciente'].trim())  return {l:'Retirado',   c:'ok'};
+  if (r['Fecha Retiro x Paciente']  && r['Fecha Retiro x Paciente'].trim())  return {l:'Retirado',   c:'ok'};
   if (r['Fecha Producto Disponible'] && r['Fecha Producto Disponible'].trim()) return {l:'Disponible', c:'dsp'};
-  if (r['Fecha Inicio Gestión'] && r['Fecha Inicio Gestión'].trim())           return {l:'En gestión', c:'pnd'};
+  if (r['Fecha Inicio Gestión']      && r['Fecha Inicio Gestión'].trim())      return {l:'En gestión', c:'pnd'};
   return {l:'Recibida', c:'pnd'};
 }
 
@@ -201,7 +196,6 @@ function iniciales(r) {
   return ((r['Apellidos']||'').charAt(0) + (r['Nombres']||'').charAt(0)).toUpperCase() || '??';
 }
 
-// ---- Toggle receta ----
 function tog(idx) {
   var rb = document.getElementById('rb' + idx);
   var cv = document.getElementById('cv' + idx);
@@ -209,51 +203,33 @@ function tog(idx) {
   if (cv) cv.classList.toggle('open');
 }
 
-// ---- Buscar paciente ----
 function buscar(dni) {
   if (!loaded) {
-    document.getElementById('resultArea').innerHTML = '<div class="empty"><span class="spin"></span>Cargando...</div>';
+    document.getElementById('resultArea').innerHTML = '<div class="empty"><span class="spin"></span>Esperando datos...</div>';
     setTimeout(function() { buscar(dni); }, 600);
     return;
   }
-
   var dniStr = String(dni).trim();
-  var recetas = [];
-  for (var i = 0; i < REC.length; i++) {
-    if (String(REC[i]['DNI']).trim() === dniStr) recetas.push(REC[i]);
-  }
-
+  var recetas = REC.filter(function(r) { return String(r['DNI']).trim() === dniStr; });
   var area = document.getElementById('resultArea');
-  if (!recetas.length) {
-    area.innerHTML = '<div class="empty">No se encontró paciente con DNI ' + dniStr + '</div>';
-    return;
-  }
+  if (!recetas.length) { area.innerHTML = '<div class="empty">No se encontró paciente con DNI ' + dniStr + '</div>'; return; }
 
   var p0 = recetas[0];
-  var conRet = 0;
-  for (var i = 0; i < recetas.length; i++) {
-    if (recetas[i]['Fecha Retiro x Paciente'] && recetas[i]['Fecha Retiro x Paciente'].trim()) conRet++;
-  }
-
-  var MESES_ORD = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-  function mo(s) { var p = String(s||'').toLowerCase().split(' '); return (parseInt(p[1])||0)*12 + MESES_ORD.indexOf(p[0]); }
+  var conRet = recetas.filter(function(r) { return r['Fecha Retiro x Paciente'] && r['Fecha Retiro x Paciente'].trim(); }).length;
+  var MO = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  function mo(s) { var p = String(s||'').toLowerCase().split(' '); return (parseInt(p[1])||0)*12 + MO.indexOf(p[0]); }
   var mesesMap = {};
-  for (var i = 0; i < recetas.length; i++) { if (recetas[i]['Mes-Año']) mesesMap[recetas[i]['Mes-Año']] = 1; }
-  var meses = Object.keys(mesesMap).sort(function(a,b){ return mo(a)-mo(b); });
-
+  recetas.forEach(function(r) { if (r['Mes-Año']) mesesMap[r['Mes-Año']] = 1; });
+  var meses = Object.keys(mesesMap).sort(function(a,b) { return mo(a)-mo(b); });
   var tMeds = {};
-  for (var i = 0; i < recetas.length; i++) {
-    var prods = BY_RECETA[recetas[i]['ID Receta'].trim()] || [];
-    for (var j = 0; j < prods.length; j++) { if (prods[j]['Producto']) tMeds[prods[j]['Producto']] = 1; }
-  }
+  recetas.forEach(function(r) {
+    (BY_RECETA[(r['ID Receta']||'').trim()]||[]).forEach(function(p) { if (p['Producto']) tMeds[p['Producto']] = 1; });
+  });
 
-  // Construir HTML — sin comillas problemáticas en eventos
   var container = document.createElement('div');
 
-  // Tarjeta paciente
   var pcrd = document.createElement('div'); pcrd.className = 'pcrd';
-  pcrd.innerHTML = '<div class="phdr">'
-    + '<div class="av">' + iniciales(p0) + '</div>'
+  pcrd.innerHTML = '<div class="phdr"><div class="av">' + iniciales(p0) + '</div>'
     + '<div><div class="pn">' + (p0['Apellidos']||'') + ', ' + (p0['Nombres']||'') + '</div>'
     + '<div class="pd">DNI: ' + dniStr + '</div></div></div>'
     + '<div class="psts">'
@@ -264,43 +240,31 @@ function buscar(dni) {
     + '</div>';
   container.appendChild(pcrd);
 
-  // Título
   var tit = document.createElement('div'); tit.className = 'stit';
   tit.textContent = 'Historial de recetas (' + recetas.length + ')';
   container.appendChild(tit);
 
-  // Recetas
-  for (var i = 0; i < recetas.length; i++) {
-    var r = recetas[i];
+  recetas.forEach(function(r, i) {
     var s = getSt(r);
-
     var ri = document.createElement('div'); ri.className = 'ri';
 
-    // Header clickeable — addEventListener evita todo problema de comillas
     var rh = document.createElement('div'); rh.className = 'rh';
     var cv = document.createElement('span'); cv.className = 'cv'; cv.id = 'cv' + i; cv.innerHTML = '&#9658;';
     var rid = document.createElement('span'); rid.className = 'rid'; rid.textContent = r['ID Receta'] || '';
-    var rd = document.createElement('span'); rd.className = 'rd'; rd.textContent = fd(r['Fecha Recepción']);
+    var rd  = document.createElement('span'); rd.className  = 'rd';  rd.textContent  = fd(r['Fecha Recepción']);
     var bdg = document.createElement('span'); bdg.className = 'bdg ' + s.c; bdg.textContent = s.l;
     rh.appendChild(cv); rh.appendChild(rid); rh.appendChild(rd); rh.appendChild(bdg);
-    rh.addEventListener('click', (function(idx) { return function() { tog(idx); }; })(i));
+    rh.addEventListener('click', (function(n) { return function() { tog(n); }; })(i));
 
-    // Body
     var rb = document.createElement('div'); rb.className = 'rb'; rb.id = 'rb' + i;
-
-    // Fechas
     var dg = document.createElement('div'); dg.className = 'dg';
-    var fechas = [
-      ['Recepción',      r['Fecha Recepción']],
-      ['Inicio gestión', r['Fecha Inicio Gestión']],
-      ['Disponible',     r['Fecha Producto Disponible']],
-      ['Retiro',         r['Fecha Retiro x Paciente']]
-    ];
-    for (var f = 0; f < fechas.length; f++) {
-      var di = document.createElement('div');
-      di.innerHTML = '<div class="dl">' + fechas[f][0] + '</div><div class="dv">' + fd(fechas[f][1]) + '</div>';
-      dg.appendChild(di);
-    }
+    [['Recepción','Fecha Recepción'],['Inicio gestión','Fecha Inicio Gestión'],
+     ['Disponible','Fecha Producto Disponible'],['Retiro','Fecha Retiro x Paciente']
+    ].forEach(function(f) {
+      var d = document.createElement('div');
+      d.innerHTML = '<div class="dl">' + f[0] + '</div><div class="dv">' + fd(r[f[1]]) + '</div>';
+      dg.appendChild(d);
+    });
     rb.appendChild(dg);
 
     if (r['Médico'] && r['Médico'].trim()) {
@@ -314,42 +278,35 @@ function buscar(dni) {
       rb.appendChild(obs);
     }
 
-    // Productos
     var prods = BY_RECETA[(r['ID Receta']||'').trim()] || [];
     if (prods.length) {
       var ps2 = document.createElement('div'); ps2.className = 'ps2';
-      var pt = document.createElement('div'); pt.className = 'pt';
+      var pt  = document.createElement('div'); pt.className  = 'pt';
       pt.textContent = 'Medicamentos (' + prods.length + ')';
       ps2.appendChild(pt);
       var tbl = document.createElement('table'); tbl.className = 'ptbl';
       tbl.innerHTML = '<thead><tr><th>Producto</th><th>Categoría</th><th style="text-align:center">Cant.</th><th>Origen</th></tr></thead>';
       var tbody = document.createElement('tbody');
-      for (var p = 0; p < prods.length; p++) {
+      prods.forEach(function(p) {
         var tr = document.createElement('tr');
-        tr.innerHTML = '<td>' + (prods[p]['Producto']||'—') + '</td>'
-          + '<td><span class="cp">' + (prods[p]['Categoría']||'—') + '</span></td>'
-          + '<td style="text-align:center">' + (prods[p]['Cantidad Prescripta']||'—') + '</td>'
-          + '<td style="color:var(--t2)">' + (prods[p]['Origen Producto']||'—') + '</td>';
+        tr.innerHTML = '<td>' + (p['Producto']||'—') + '</td>'
+          + '<td><span class="cp">' + (p['Categoría']||'—') + '</span></td>'
+          + '<td style="text-align:center">' + (p['Cantidad Prescripta']||'—') + '</td>'
+          + '<td style="color:var(--t2)">' + (p['Origen Producto']||'—') + '</td>';
         tbody.appendChild(tr);
-      }
-      tbl.appendChild(tbody);
-      ps2.appendChild(tbl);
-      rb.appendChild(ps2);
+      });
+      tbl.appendChild(tbody); ps2.appendChild(tbl); rb.appendChild(ps2);
     }
 
-    ri.appendChild(rh);
-    ri.appendChild(rb);
-    container.appendChild(ri);
-  }
+    ri.appendChild(rh); ri.appendChild(rb); container.appendChild(ri);
+  });
 
   area.innerHTML = '';
   area.appendChild(container);
 }
 
-// ---- Eventos ----
 document.getElementById('btnBuscar').addEventListener('click', function() {
-  var v = document.getElementById('dniInput').value.trim();
-  if (v) buscar(v);
+  var v = document.getElementById('dniInput').value.trim(); if (v) buscar(v);
 });
 document.getElementById('dniInput').addEventListener('keydown', function(e) {
   if (e.key === 'Enter') { var v = e.target.value.trim(); if (v) buscar(v); }
@@ -360,7 +317,6 @@ document.getElementById('btnLimpiar').addEventListener('click', function() {
 });
 document.getElementById('btnActualizar').addEventListener('click', cargarDatos);
 
-// ---- Inicio ----
 cargarDatos();
 </script>
 </body>
