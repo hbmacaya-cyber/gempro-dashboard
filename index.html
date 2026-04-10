@@ -83,8 +83,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div>
 
 <script>
-var URL_R = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTtspEWMBzvbRVDJnaqhIFoBdgFvkvx80i9BlenpBIn94b6DyBYwVLlssqFShYebv9BBfdE4ajL50Yk/pub?gid=0&single=true&output=csv';
-var URL_P = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTtspEWMBzvbRVDJnaqhIFoBdgFvkvx80i9BlenpBIn94b6DyBYwVLlssqFShYebv9BBfdE4ajL50Yk/pub?gid=1031286687&single=true&output=csv';
+var PROXY = 'https://corsproxy.io/?';
+var BASE_R = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTtspEWMBzvbRVDJnaqhIFoBdgFvkvx80i9BlenpBIn94b6DyBYwVLlssqFShYebv9BBfdE4ajL50Yk/pub?gid=0&single=true&output=csv';
+var BASE_P = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTtspEWMBzvbRVDJnaqhIFoBdgFvkvx80i9BlenpBIn94b6DyBYwVLlssqFShYebv9BBfdE4ajL50Yk/pub?gid=1031286687&single=true&output=csv';
+var URL_R = PROXY + encodeURIComponent(BASE_R);
+var URL_P = PROXY + encodeURIComponent(BASE_P);
 
 var REC = [], PRD = [], BY_RECETA = {}, loaded = false;
 
