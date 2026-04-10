@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>GEMPRO Farma — Análisis General</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg1:#fff;--bg2:#f5f5f3;--bg3:#eeede9;
+  --t1:#1a1a18;--t2:#5f5e5a;--t3:#888780;
+  --b1:rgba(0,0,0,0.1);--b2:rgba(0,0,0,0.2);
+  --blue:#378ADD;--green:#3B6D11;--amber:#854F0B;--red:#A32D2D;
+  --r1:8px;--r2:12px;
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg1:#1e1e1c;--bg2:#2a2a28;--bg3:#242422;
+  --t1:#e8e7e2;--t2:#a8a7a2;--t3:#6e6d69;
+  --b1:rgba(255,255,255,0.08);--b2:rgba(255,255,255,0.16);
+}}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg3);color:var(--t1);min-height:100vh;padding:1.5rem}
+.wrap{max-width:1000px;margin:0 auto}
+nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:10px}
+.nav-left h1{font-size:17px;font-weight:500;color:var(--t1)}
+.nav-left h1 .dot{width:8px;height:8px;border-radius:50%;background:#639922;display:inline-block;margin-right:6px}
+.nav-left p{font-size:12px;color:var(--t2);margin-top:2px}
+.nav-right{display:flex;gap:8px}
+.btn{font-size:12px;padding:6px 12px;border:0.5px solid var(--b2);background:transparent;color:var(--t2);border-radius:var(--r1);cursor:pointer;text-decoration:none;display:inline-block}
+.btn:hover{background:var(--bg2)}
+.btn-primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+.btn-primary:hover{opacity:.9}
+.section{margin-bottom:2rem}
+.section-hdr{display:flex;align-items:baseline;gap:8px;margin-bottom:1rem;padding-bottom:8px;border-bottom:0.5px solid var(--b1)}
+.section-hdr h2{font-size:14px;font-weight:500;color:var(--t1)}
+.section-hdr span{font-size:11px;color:var(--t3)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:1.5rem}
+.kpi{background:var(--bg2);border-radius:var(--r1);padding:14px 16px}
+.kpi-l{font-size:11px;color:var(--t2);margin-bottom:5px}
+.kpi-v{font-size:24px;font-weight:500;color:var(--t1);line-height:1}
+.kpi-s{font-size:11px;color:var(--t3);margin-top:4px}
+.chart-wrap{position:relative;width:100%;height:240px;margin-bottom:1rem}
+.chart-wrap-sm{position:relative;width:100%;height:180px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:600px){.grid2{grid-template-columns:1fr}}
+.card{background:var(--bg1);border:0.5px solid var(--b1);border-radius:var(--r2);padding:1rem 1.25rem}
+.card-title{font-size:11px;font-weight:500;color:var(--t2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;padding:6px 8px;color:var(--t2);border-bottom:0.5px solid var(--b1);font-weight:500;font-size:11px;text-transform:uppercase;letter-spacing:.03em}
+td{padding:6px 8px;color:var(--t1);border-bottom:0.5px solid var(--b1)}
+tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:var(--bg2)}
+.badge{font-size:10px;padding:2px 7px;border-radius:20px;font-weight:500;white-space:nowrap}
+.badge-red{background:#FCEBEB;color:#A32D2D}
+.badge-amber{background:#FAEEDA;color:#854F0B}
+.badge-green{background:#EAF3DE;color:#3B6D11}
+.badge-blue{background:#E6F1FB;color:#185FA5}
+.bar-mini{display:inline-block;height:6px;background:var(--blue);border-radius:3px;vertical-align:middle}
+.pct-bar-bg{display:inline-block;width:60px;height:6px;background:var(--bg2);border-radius:3px;vertical-align:middle;margin:0 6px}
+.tabs-sm{display:flex;gap:0;border-bottom:0.5px solid var(--b1);margin-bottom:1rem}
+.tab-sm{padding:6px 14px;font-size:12px;color:var(--t2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-0.5px}
+.tab-sm.active{color:var(--t1);border-bottom-color:var(--blue);font-weight:500}
+.alert-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--r1);background:var(--bg2);margin-bottom:6px;font-size:12px}
+.alert-icon{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.alert-red{background:#E24B4A}
+.alert-amber{background:#EF9F27}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav>
+  <div class="nav-left">
+    <h1><span class="dot"></span>GEMPRO Farma — HIG</h1>
+    <p>Análisis general &amp; indicadores</p>
+  </div>
+  <div class="nav-right">
+    <a href="index.html" class="btn">&#8592; Ver paciente</a>
+  </div>
+</nav>
+
+<!-- SECTION 1: KPIs Volumen -->
+<div class="section">
+  <div class="section-hdr"><h2>Evolución mensual de la demanda</h2><span>KPIs de volumen</span></div>
+  <div class="kpis" id="kpisTotal"></div>
+  <div class="card">
+    <div class="tabs-sm">
+      <div class="tab-sm active" onclick="switchVolTab('recetas',this)">Recetas y pacientes</div>
+      <div class="tab-sm" onclick="switchVolTab('prescripciones',this)">Prescripciones y volumen</div>
+    </div>
+    <div class="chart-wrap"><canvas id="chartVol1"></canvas></div>
+  </div>
+</div>
+
+<!-- SECTION 2: Categorización -->
+<div class="section">
+  <div class="section-hdr"><h2>Categorización de productos por mes</h2></div>
+  <div class="grid2">
+    <div class="card"><div class="card-title">Prescripciones por categoría</div><div class="chart-wrap-sm"><canvas id="chartCatN"></canvas></div></div>
+    <div class="card"><div class="card-title">Volumen (unidades) por categoría</div><div class="chart-wrap-sm"><canvas id="chartCatV"></canvas></div></div>
+  </div>
+</div>
+
+<!-- SECTION 3: Brechas -->
+<div class="section">
+  <div class="section-hdr"><h2>Tiempos de proceso</h2><span>Días promedio entre etapas</span></div>
+  <div class="grid2">
+    <div class="card"><div class="card-title">Inicio gestión &#8594; Producto disponible (días prom.)</div><div class="chart-wrap-sm"><canvas id="chartBG"></canvas></div></div>
+    <div class="card"><div class="card-title">Producto disponible &#8594; Retiro por paciente (días prom.)</div><div class="chart-wrap-sm"><canvas id="chartBR"></canvas></div></div>
+  </div>
+</div>
+
+<!-- SECTION 4: Alertas -->
+<div class="section">
+  <div class="section-hdr"><h2>Alertas operativas</h2></div>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title">Procesos truncados por mes <span id="truncTotal" style="color:var(--red)"></span></div>
+      <p style="font-size:11px;color:var(--t3);margin-bottom:10px">Producto disponible pero sin fecha de retiro</p>
+      <div id="truncTable"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Recetas demoradas <span id="demTotal" style="color:var(--amber)"></span></div>
+      <p style="font-size:11px;color:var(--t3);margin-bottom:10px">Más de 15 días desde recepción sin producto disponible</p>
+      <div id="demTable"></div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 5: Recurrencia -->
+<div class="section">
+  <div class="section-hdr"><h2>Seguimiento de pacientes recurrentes</h2><span>Presencia mensual</span></div>
+  <div class="card" style="overflow-x:auto">
+    <div id="recurrTable"></div>
+  </div>
+</div>
+
+<!-- SECTION 6: Profesionales -->
+<div class="section">
+  <div class="section-hdr"><h2>Productividad por profesional</h2></div>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title">Recetas totales por profesional</div>
+      <div class="chart-wrap"><canvas id="chartProf"></canvas></div>
+    </div>
+    <div class="card" style="overflow-x:auto">
+      <div class="card-title">Detalle por profesional</div>
+      <div id="profTable"></div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+
+<script>
+var D = {"meses": ["septiembre 2025", "octubre 2025", "noviembre 2025", "diciembre 2025", "enero 2026", "febrero 2026", "marzo 2026", "abril 2026"], "meses_short": ["sep 2025", "oct 2025", "nov 2025", "dic 2025", "ene 2026", "feb 2026", "mar 2026", "abr 2026"], "kpi": [{"Mes-Año": "septiembre 2025", "mes_order": 202508, "recetas": 7, "pacientes": 7, "prescripciones": 15, "volumen": 590.0}, {"Mes-Año": "octubre 2025", "mes_order": 202509, "recetas": 42, "pacientes": 40, "prescripciones": 104, "volumen": 4098.0}, {"Mes-Año": "noviembre 2025", "mes_order": 202510, "recetas": 40, "pacientes": 39, "prescripciones": 110, "volumen": 4680.0}, {"Mes-Año": "diciembre 2025", "mes_order": 202511, "recetas": 37, "pacientes": 34, "prescripciones": 96, "volumen": 4360.0}, {"Mes-Año": "enero 2026", "mes_order": 202600, "recetas": 50, "pacientes": 45, "prescripciones": 154, "volumen": 6339.0}, {"Mes-Año": "febrero 2026", "mes_order": 202601, "recetas": 13, "pacientes": 13, "prescripciones": 45, "volumen": 1975.0}, {"Mes-Año": "marzo 2026", "mes_order": 202602, "recetas": 49, "pacientes": 41, "prescripciones": 223, "volumen": 9400.0}, {"Mes-Año": "abril 2026", "mes_order": 202603, "recetas": 1, "pacientes": 1, "prescripciones": 5, "volumen": 180.0}], "cat": [{"Mes-Año": "septiembre 2025", "mes_order": 202508.0, "Categoría": "Generales", "n": 15, "vol": 590.0}, {"Mes-Año": "octubre 2025", "mes_order": 202509.0, "Categoría": "Descartables", "n": 4, "vol": 120.0}, {"Mes-Año": "octubre 2025", "mes_order": 202509.0, "Categoría": "Generales", "n": 96, "vol": 3935.0}, {"Mes-Año": "octubre 2025", "mes_order": 202509.0, "Categoría": "Insulinas", "n": 4, "vol": 43.0}, {"Mes-Año": "noviembre 2025", "mes_order": 202510.0, "Categoría": "Descartables", "n": 9, "vol": 285.0}, {"Mes-Año": "noviembre 2025", "mes_order": 202510.0, "Categoría": "Generales", "n": 95, "vol": 4365.0}, {"Mes-Año": "noviembre 2025", "mes_order": 202510.0, "Categoría": "Insulinas", "n": 6, "vol": 30.0}, {"Mes-Año": "diciembre 2025", "mes_order": 202511.0, "Categoría": "Generales", "n": 96, "vol": 4360.0}, {"Mes-Año": "enero 2026", "mes_order": 202600.0, "Categoría": "Descartables", "n": 20, "vol": 544.0}, {"Mes-Año": "enero 2026", "mes_order": 202600.0, "Categoría": "Generales", "n": 122, "vol": 5735.0}, {"Mes-Año": "enero 2026", "mes_order": 202600.0, "Categoría": "Insulinas", "n": 12, "vol": 60.0}, {"Mes-Año": "febrero 2026", "mes_order": 202601.0, "Categoría": "Generales", "n": 45, "vol": 1975.0}, {"Mes-Año": "marzo 2026", "mes_order": 202602.0, "Categoría": "Descartables", "n": 9, "vol": 325.0}, {"Mes-Año": "marzo 2026", "mes_order": 202602.0, "Categoría": "Generales", "n": 214, "vol": 9075.0}, {"Mes-Año": "abril 2026", "mes_order": 202603.0, "Categoría": "Generales", "n": 5, "vol": 180.0}], "brechas_mes": [{"Mes-Año": "septiembre 2025", "mes_order": 202508, "avg_gest": 7.6, "avg_ret": 17.4, "max_gest": 8.0, "max_ret": 52.0}, {"Mes-Año": "octubre 2025", "mes_order": 202509, "avg_gest": 7.7, "avg_ret": 8.0, "max_gest": 14.0, "max_ret": 53.0}, {"Mes-Año": "noviembre 2025", "mes_order": 202510, "avg_gest": 5.7, "avg_ret": 13.1, "max_gest": 10.0, "max_ret": 54.0}, {"Mes-Año": "diciembre 2025", "mes_order": 202511, "avg_gest": 4.6, "avg_ret": 13.3, "max_gest": 42.0, "max_ret": 92.0}, {"Mes-Año": "enero 2026", "mes_order": 202600, "avg_gest": 3.9, "avg_ret": 15.1, "max_gest": 44.0, "max_ret": 67.0}, {"Mes-Año": "febrero 2026", "mes_order": 202601, "avg_gest": 11.0, "avg_ret": 9.4, "max_gest": 21.0, "max_ret": 15.0}, {"Mes-Año": "marzo 2026", "mes_order": 202602, "avg_gest": 7.0, "avg_ret": 2.9, "max_gest": 9.0, "max_ret": 13.0}, {"Mes-Año": "abril 2026", "mes_order": 202603, "avg_gest": "", "avg_ret": "", "max_gest": "", "max_ret": ""}], "trunc_mes": [{"Mes-Año": "octubre 2025", "mes_order": 202509, "n": 5}, {"Mes-Año": "noviembre 2025", "mes_order": 202510, "n": 2}, {"Mes-Año": "enero 2026", "mes_order": 202600, "n": 2}, {"Mes-Año": "febrero 2026", "mes_order": 202601, "n": 5}, {"Mes-Año": "marzo 2026", "mes_order": 202602, "n": 16}], "trunc_list": [{"ID Receta": "23170028_07-10-25", "DNI": "23170028", "Apellidos": "Candia", "Nombres": "Ana", "Mes-Año": "octubre 2025", "Fecha Recepción": "2025-10-07", "Fecha Producto Disponible": "2025-10-20"}, {"ID Receta": "36409344_09-10-25", "DNI": "36409344", "Apellidos": "Gamarra", "Nombres": "Ivana Ramona", "Mes-Año": "octubre 2025", "Fecha Recepción": "2025-10-09", "Fecha Producto Disponible": "2025-10-20"}, {"ID Receta": "93041389_09-10-25", "DNI": "93041389", "Apellidos": "Leguizamón Ávalos", "Nombres": "Demetrio", "Mes-Año": "octubre 2025", "Fecha Recepción": "2025-10-09", "Fecha Producto Disponible": "2025-10-12"}, {"ID Receta": "30274054_22-10-25", "DNI": "30274054", "Apellidos": "León Hart", "Nombres": "Nancy Graciela", "Mes-Año": "octubre 2025", "Fecha Recepción": "2025-10-22", "Fecha Producto Disponible": "2025-11-03"}, {"ID Receta": "94320038_30-10-25", "DNI": "94320038", "Apellidos": "OZIMEK", "Nombres": "JULIO", "Mes-Año": "octubre 2025", "Fecha Recepción": "2025-10-30", "Fecha Producto Disponible": "2025-11-10"}, {"ID Receta": "26768605_02-11-25", "DNI": "26768605", "Apellidos": "Mendoza", "Nombres": "Bibiana", "Mes-Año": "noviembre 2025", "Fecha Recepción": "2025-11-02", "Fecha Producto Disponible": "2025-11-13"}, {"ID Receta": "24537388_09-11-25", "DNI": "24537388", "Apellidos": "DA SILVA", "Nombres": "SUSANA ESTER", "Mes-Año": "noviembre 2025", "Fecha Recepción": "2025-11-09", "Fecha Producto Disponible": "2025-11-27"}, {"ID Receta": "34284712_01-01-26", "DNI": "34284712", "Apellidos": "Haerter", "Nombres": "Ana Noemí", "Mes-Año": "enero 2026", "Fecha Recepción": "2026-01-01", "Fecha Producto Disponible": "2026-01-14"}, {"ID Receta": "32841067_22-01-26", "DNI": "32841067", "Apellidos": "Enriquez", "Nombres": "Silvana Maria", "Mes-Año": "enero 2026", "Fecha Recepción": "2026-01-22", "Fecha Producto Disponible": "2026-01-29"}, {"ID Receta": "19021021_01-02-26", "DNI": "19021021", "Apellidos": "Kociubczyk Morais", "Nombres": "Nancy", "Mes-Año": "febrero 2026", "Fecha Recepción": "2026-02-01", "Fecha Producto Disponible": "2026-02-27"}, {"ID Receta": "18180632_04-02-26", "DNI": "18180632", "Apellidos": "PAEZ", "Nombres": "GRACIELA", "Mes-Año": "febrero 2026", "Fecha Recepción": "2026-02-04", "Fecha Producto Disponible": "2026-02-27"}, {"ID Receta": "22814335_04-02-26", "DNI": "22814335", "Apellidos": "FERREYRA ", "Nombres": "RUBEN ERNESTO", "Mes-Año": "febrero 2026", "Fecha Recepción": "2026-02-04", "Fecha Producto Disponible": "2026-02-27"}, {"ID Receta": "31890349_04-03-26", "DNI": "31890349", "Apellidos": "Sosa", "Nombres": "Julia Noemí", "Mes-Año": "marzo 2026", "Fecha Recepción": "2026-03-04", "Fecha Producto Disponible": "2026-03-12"}, {"ID Receta": "20899412_26-02-26", "DNI": "20899412", "Apellidos": "Mereles", "Nombres": "Jorge", "Mes-Año": "febrero 2026", "Fecha Recepción": "2026-02-26", "Fecha Producto Disponible": "2026-03-12"}, {"ID Receta": "26578071_09-03-26", "DNI": "26578071", "Apellidos": "Rivero", "Nombres": "Sandra Soledad", "Mes-Año": "marzo 2026", "Fecha Recepción": "2026-03-09", "Fecha Producto Disponible": "2026-03-25"}, {"ID Receta": "16804559_10-03-26", "DNI": "16804559", "Apellidos": "Arzamendia", "Nombres": "Jorge Lucio", "Mes-Año": "marzo 2026", "Fecha Recepción": "2026-03-10", "Fecha Producto Disponible": "2026-03-25"}, {"ID Receta": "22338635_10-03-26", "DNI": "22338635", "Apellidos": "MANTAU", "Nombres": "JOSE RUBEN", "Mes-Año": "marzo 2026", "Fecha Recepción": "2026-03-10", "Fecha Producto Disponible": "2026-03-25"}, {"ID Receta": "25489662_11-03-26", "DNI": "25489662", "Apellidos": "SILVEIRA", "Nombres": "CLAUDIA NATALIA", "Mes-Año": "marzo 2026", "Fecha Recepción": "2026-03-11", "Fecha Producto Disponible": "2026-03-25"}, {"ID Receta": "29285479_25-02-26", "DNI": "29285479", "Apellidos": "Rios", "Nombres": "Norma Isabel", "Mes-Año": "febrero 2026", "Fecha Recepción": "2026-02-25", "Fecha Producto Disponible": "2026-03-25"}, {"ID Receta": "22488624_12-03-26", "DNI": "22488624", "Apellidos": "Avalos", "Nombres": "Zulma Nelly", "Mes-Año": "marzo 2026", "Fecha Recepción": "2026-03-12", "Fecha Producto Disponible": "2026-03-25"}, {"ID Receta": "18768797_17-03-26", "DNI": "18768797", "Apellidos": "Fariña", "Nombres": "Beatriz Francisca", "Mes-Año": "marzo 2026", "Fecha Recepción": "2026-03-17", "Fecha Producto Disponible": "2026-04-01"}, {"ID Receta": "25468452_17-03-26", "DNI": "25468452", "Apellidos": "Figueredo", "Nombres": "Estela Liliana", "Mes-Año": "marzo 2026", "Fecha Recepción": "2026-03-17", "Fecha Producto Disponible": "2026-04-01"}, {"ID Receta": "24748301_24-03-26", "DNI": "24748301", "Apellidos": "CARDOZO", "Nombres": "KAREN SILVINA", "Mes-Año": "marzo 2026", "Fecha Recepción": "2026-03-24", "Fecha Producto Disponible": "2026-04-01"}, {"ID Receta": "30512765_24-03-26", "DNI": "30512765", "Apellidos": "Gramajo", "Nombres": "Sergio Daniel", "Mes-Año": "marzo 2026", "Fecha Recepción": "2026-03-24", "Fecha Producto Disponible": "2026-04-01"}, {"ID Receta": "24544934_25-03-26", "DNI": "24544934", "Apellidos": "VILLANUEVA", "Nombres": "ESTEBAN JAVIER", "Mes-Año": "marzo 2026", "Fecha Recepción": "2026-03-25", "Fecha Producto Disponible": "2026-04-01"}, {"ID Receta": "18737009_25-03-26", "DNI": "18737009", "Apellidos": "", "Nombres": "", "Mes-Año": "marzo 2026", "Fecha Recepción": "2026-03-25", "Fecha Producto Disponible": "2026-04-01"}, {"ID Receta": "43546233_15-03-26", "DNI": "43546233", "Apellidos": "INSAURRALDE", "Nombres": "RICARDO EZEQUIEL", "Mes-Año": "marzo 2026", "Fecha Recepción": "2026-03-15", "Fecha Producto Disponible": "2026-04-01"}, {"ID Receta": "26578071_16-03-26", "DNI": "26578071", "Apellidos": "Rivero", "Nombres": "Sandra Soledad", "Mes-Año": "marzo 2026", "Fecha Recepción": "2026-03-16", "Fecha Producto Disponible": "2026-04-01"}, {"ID Receta": "41924239_02-03-26", "DNI": "41924239", "Apellidos": "SILVA", "Nombres": "NATALIA SOLEDAD", "Mes-Año": "marzo 2026", "Fecha Recepción": "2026-03-02", "Fecha Producto Disponible": "2026-04-01"}, {"ID Receta": "17367498_08-03-26", "DNI": "17367498", "Apellidos": "Rojas", "Nombres": "Juan Rafael", "Mes-Año": "marzo 2026", "Fecha Recepción": "2026-03-08", "Fecha Producto Disponible": "2026-04-01"}], "dem_list": [{"ID Receta": "39166265_01-10-25", "DNI": "39166265", "Apellidos": "Salazar", "Nombres": "Vanina Ayelén", "Mes-Año": "octubre 2025", "Fecha Recepción": "2025-10-01", "dias_rec": 190}, {"ID Receta": "28065541_30-10-25", "DNI": "28065541", "Apellidos": "NIELSEN", "Nombres": "CRISTIAN JAVIER", "Mes-Año": "octubre 2025", "Fecha Recepción": "2025-10-30", "dias_rec": 161}, {"ID Receta": "31890349_05-11-25", "DNI": "31890349", "Apellidos": "Sosa", "Nombres": "Julia Noemí", "Mes-Año": "noviembre 2025", "Fecha Recepción": "2025-11-05", "dias_rec": 155}, {"ID Receta": "34284712_06-11-25", "DNI": "34284712", "Apellidos": "Haerter", "Nombres": "Ana Noemí", "Mes-Año": "noviembre 2025", "Fecha Recepción": "2025-11-06", "dias_rec": 154}, {"ID Receta": "24748301_09-11-25", "DNI": "24748301", "Apellidos": "CARDOZO", "Nombres": "KAREN SILVINA", "Mes-Año": "noviembre 2025", "Fecha Recepción": "2025-11-09", "dias_rec": 151}, {"ID Receta": "23690143_25-12-25", "DNI": "23690143", "Apellidos": "Acosta", "Nombres": "Ricardo Daniel", "Mes-Año": "diciembre 2025", "Fecha Recepción": "2025-12-25", "dias_rec": 105}, {"ID Receta": "21723628_28-12-25", "DNI": "21723628", "Apellidos": "Dos Santos ", "Nombres": "Liliana De Los Angeles", "Mes-Año": "diciembre 2025", "Fecha Recepción": "2025-12-28", "dias_rec": 102}, {"ID Receta": "27574795_29-12-25", "DNI": "27574795", "Apellidos": "TORRES", "Nombres": "LEIDY ROMINA", "Mes-Año": "diciembre 2025", "Fecha Recepción": "2025-12-29", "dias_rec": 101}, {"ID Receta": "28065541_20-01-26", "DNI": "28065541", "Apellidos": "NIELSEN", "Nombres": "CRISTIAN JAVIER", "Mes-Año": "enero 2026", "Fecha Recepción": "2026-01-20", "dias_rec": 79}, {"ID Receta": "30512765_01-02-26", "DNI": "30512765", "Apellidos": "Gramajo", "Nombres": "Sergio Daniel", "Mes-Año": "febrero 2026", "Fecha Recepción": "2026-02-01", "dias_rec": 67}, {"ID Receta": "25705813_01-02-26", "DNI": "25705813", "Apellidos": "Britos", "Nombres": "Milva Carina", "Mes-Año": "febrero 2026", "Fecha Recepción": "2026-02-01", "dias_rec": 67}, {"ID Receta": "20815617_02-02-26", "DNI": "20815617", "Apellidos": "PINTOS", "Nombres": "JULIA ALMIRA", "Mes-Año": "febrero 2026", "Fecha Recepción": "2026-02-02", "dias_rec": 66}], "recurrencia": [{"DNI": "23690208", "ap": "Yfran", "nom": "Rosa", "n": 8, "nm": 5, "meses": ["septiembre 2025", "octubre 2025", "noviembre 2025", "enero 2026", "marzo 2026"], "pct": 62}, {"DNI": "23170028", "ap": "Candia", "nom": "Ana", "n": 8, "nm": 4, "meses": ["octubre 2025", "noviembre 2025", "diciembre 2025", "marzo 2026"], "pct": 50}, {"DNI": "16804559", "ap": "Arzamendia", "nom": "Jorge Lucio", "n": 7, "nm": 6, "meses": ["octubre 2025", "noviembre 2025", "diciembre 2025", "enero 2026", "febrero 2026", "marzo 2026"], "pct": 75}, {"DNI": "20829867", "ap": "Grahl", "nom": "Irma Graciela", "n": 7, "nm": 7, "meses": ["septiembre 2025", "octubre 2025", "noviembre 2025", "diciembre 2025", "enero 2026", "febrero 2026", "marzo 2026"], "pct": 88}, {"DNI": "95820564", "ap": "Mendoza", "nom": "Dorys", "n": 6, "nm": 5, "meses": ["octubre 2025", "noviembre 2025", "diciembre 2025", "enero 2026", "marzo 2026"], "pct": 62}, {"DNI": "18681169", "ap": "Prieto", "nom": "Maria Zulema", "n": 5, "nm": 4, "meses": ["octubre 2025", "diciembre 2025", "enero 2026", "febrero 2026"], "pct": 50}, {"DNI": "23690143", "ap": "Acosta", "nom": "Ricardo Daniel", "n": 5, "nm": 5, "meses": ["septiembre 2025", "octubre 2025", "noviembre 2025", "diciembre 2025", "enero 2026"], "pct": 62}, {"DNI": "25468452", "ap": "Figueredo", "nom": "Estela Liliana", "n": 5, "nm": 5, "meses": ["septiembre 2025", "octubre 2025", "noviembre 2025", "enero 2026", "marzo 2026"], "pct": 62}, {"DNI": "25705813", "ap": "Britos", "nom": "Milva Carina", "n": 5, "nm": 4, "meses": ["octubre 2025", "noviembre 2025", "enero 2026", "febrero 2026"], "pct": 50}, {"DNI": "26578071", "ap": "Rivero", "nom": "Sandra Soledad", "n": 5, "nm": 4, "meses": ["septiembre 2025", "noviembre 2025", "diciembre 2025", "marzo 2026"], "pct": 50}, {"DNI": "25438592", "ap": "Alegre", "nom": "Carlos Ismael", "n": 5, "nm": 4, "meses": ["noviembre 2025", "diciembre 2025", "enero 2026", "marzo 2026"], "pct": 50}, {"DNI": "30512765", "ap": "Gramajo", "nom": "Sergio Daniel", "n": 5, "nm": 5, "meses": ["octubre 2025", "diciembre 2025", "enero 2026", "febrero 2026", "marzo 2026"], "pct": 62}, {"DNI": "92987245", "ap": "Aguilar Orué", "nom": "Carmen", "n": 5, "nm": 5, "meses": ["octubre 2025", "noviembre 2025", "diciembre 2025", "enero 2026", "marzo 2026"], "pct": 62}, {"DNI": "27574795", "ap": "TORRES", "nom": "LEIDY ROMINA", "n": 5, "nm": 4, "meses": ["noviembre 2025", "diciembre 2025", "enero 2026", "marzo 2026"], "pct": 50}, {"DNI": "24161757", "ap": "Salazar", "nom": "Pedro", "n": 5, "nm": 4, "meses": ["octubre 2025", "noviembre 2025", "enero 2026", "marzo 2026"], "pct": 50}, {"DNI": "18768797", "ap": "Fariña", "nom": "Beatriz Francisca", "n": 4, "nm": 3, "meses": ["octubre 2025", "diciembre 2025", "marzo 2026"], "pct": 38}, {"DNI": "24573453", "ap": "Pereira", "nom": "María Blanca", "n": 4, "nm": 4, "meses": ["octubre 2025", "noviembre 2025", "enero 2026", "marzo 2026"], "pct": 50}, {"DNI": "23951016", "ap": "Salinas", "nom": "Ramona", "n": 4, "nm": 4, "meses": ["octubre 2025", "diciembre 2025", "enero 2026", "marzo 2026"], "pct": 50}, {"DNI": "20899412", "ap": "Mereles", "nom": "Jorge", "n": 4, "nm": 4, "meses": ["octubre 2025", "noviembre 2025", "enero 2026", "febrero 2026"], "pct": 50}, {"DNI": "19021021", "ap": "Kociubczyk Morais", "nom": "Nancy", "n": 4, "nm": 4, "meses": ["octubre 2025", "diciembre 2025", "febrero 2026", "marzo 2026"], "pct": 50}, {"DNI": "17064093", "ap": "Ifran", "nom": "María Angélica", "n": 4, "nm": 4, "meses": ["octubre 2025", "noviembre 2025", "enero 2026", "marzo 2026"], "pct": 50}, {"DNI": "17040251", "ap": "Ibañez", "nom": "María Angélica", "n": 4, "nm": 4, "meses": ["octubre 2025", "noviembre 2025", "diciembre 2025", "enero 2026"], "pct": 50}, {"DNI": "29285479", "ap": "Rios", "nom": "Norma Isabel", "n": 4, "nm": 4, "meses": ["septiembre 2025", "diciembre 2025", "enero 2026", "febrero 2026"], "pct": 50}, {"DNI": "30619344", "ap": "MARCHAK", "nom": "CRISTIAN MANUEL", "n": 4, "nm": 4, "meses": ["octubre 2025", "diciembre 2025", "enero 2026", "marzo 2026"], "pct": 50}, {"DNI": "95498261", "ap": "Espínola de Benitez", "nom": "Leonarda", "n": 4, "nm": 4, "meses": ["octubre 2025", "noviembre 2025", "diciembre 2025", "enero 2026"], "pct": 50}, {"DNI": "31890349", "ap": "Sosa", "nom": "Julia Noemí", "n": 4, "nm": 4, "meses": ["noviembre 2025", "diciembre 2025", "enero 2026", "marzo 2026"], "pct": 50}, {"DNI": "28889807", "ap": "Nuñez ", "nom": "Claudia Andrea", "n": 4, "nm": 4, "meses": ["octubre 2025", "noviembre 2025", "diciembre 2025", "abril 2026"], "pct": 50}, {"DNI": "94583945", "ap": "Cabrera Martinez", "nom": "Wilson Ariel", "n": 4, "nm": 4, "meses": ["noviembre 2025", "diciembre 2025", "enero 2026", "marzo 2026"], "pct": 50}, {"DNI": "95138869", "ap": "Sanchez", "nom": "Mario", "n": 4, "nm": 4, "meses": ["octubre 2025", "noviembre 2025", "diciembre 2025", "marzo 2026"], "pct": 50}, {"DNI": "25489547", "ap": "Blanco", "nom": "Roberto Carlos", "n": 4, "nm": 3, "meses": ["octubre 2025", "enero 2026", "febrero 2026"], "pct": 38}, {"DNI": "24748301", "ap": "CARDOZO", "nom": "KAREN SILVINA", "n": 4, "nm": 3, "meses": ["octubre 2025", "noviembre 2025", "marzo 2026"], "pct": 38}, {"DNI": "32841048", "ap": "Vega", "nom": "Sonia Andrea", "n": 3, "nm": 3, "meses": ["septiembre 2025", "diciembre 2025", "marzo 2026"], "pct": 38}, {"DNI": "31572943", "ap": "VILLALBA ", "nom": "VIVIANA CAROLINA", "n": 3, "nm": 3, "meses": ["diciembre 2025", "enero 2026", "marzo 2026"], "pct": 38}, {"DNI": "18698970", "ap": "Telles", "nom": "Norma Gladys", "n": 3, "nm": 3, "meses": ["octubre 2025", "diciembre 2025", "enero 2026"], "pct": 38}, {"DNI": "21025426", "ap": "BRITO ", "nom": "JOSÉ EMILIO", "n": 3, "nm": 3, "meses": ["noviembre 2025", "diciembre 2025", "enero 2026"], "pct": 38}, {"DNI": "14826713", "ap": "Pineda", "nom": "Isidoro Félix", "n": 3, "nm": 3, "meses": ["octubre 2025", "noviembre 2025", "diciembre 2025"], "pct": 38}, {"DNI": "32841067", "ap": "Enriquez", "nom": "Silvana Maria", "n": 3, "nm": 3, "meses": ["noviembre 2025", "diciembre 2025", "enero 2026"], "pct": 38}, {"DNI": "41924239", "ap": "SILVA", "nom": "NATALIA SOLEDAD", "n": 3, "nm": 3, "meses": ["octubre 2025", "enero 2026", "marzo 2026"], "pct": 38}, {"DNI": "23030488", "ap": "VENIALGO", "nom": "HUGO", "n": 3, "nm": 3, "meses": ["octubre 2025", "noviembre 2025", "diciembre 2025"], "pct": 38}, {"DNI": "23818309", "ap": "Maidana", "nom": "Liliana", "n": 3, "nm": 3, "meses": ["octubre 2025", "enero 2026", "marzo 2026"], "pct": 38}], "prof_total": [{"Medico": "Paccasassi Alejandro", "recetas": 55, "pacientes": 26, "meses_act": 6}, {"Medico": "Guerrero Laura", "recetas": 34, "pacientes": 15, "meses_act": 7}, {"Medico": "Benítez Guido", "recetas": 31, "pacientes": 19, "meses_act": 5}, {"Medico": "Checo Rossi", "recetas": 23, "pacientes": 7, "meses_act": 6}, {"Medico": "Amaro Silvia", "recetas": 16, "pacientes": 8, "meses_act": 5}, {"Medico": "Rodríguez Patricia", "recetas": 12, "pacientes": 7, "meses_act": 5}, {"Medico": "Román Adrián", "recetas": 6, "pacientes": 3, "meses_act": 5}, {"Medico": "Espínola Luis", "recetas": 6, "pacientes": 3, "meses_act": 3}, {"Medico": "Chiesa Candelaria", "recetas": 6, "pacientes": 3, "meses_act": 4}, {"Medico": "Leguizamón Miriam", "recetas": 2, "pacientes": 2, "meses_act": 2}, {"Medico": "Bruquetas Mercedes", "recetas": 1, "pacientes": 1, "meses_act": 1}, {"Medico": "Luza Lucas Felipe", "recetas": 1, "pacientes": 1, "meses_act": 1}, {"Medico": "Paniagua Matias", "recetas": 1, "pacientes": 1, "meses_act": 1}, {"Medico": "Reynoso Maximiliano", "recetas": 1, "pacientes": 1, "meses_act": 1}, {"Medico": "Sanchez Oscar", "recetas": 1, "pacientes": 1, "meses_act": 1}, {"Medico": "Sotelo Franco", "recetas": 1, "pacientes": 1, "meses_act": 1}, {"Medico": "Zeballo Evelyn", "recetas": 1, "pacientes": 1, "meses_act": 1}], "prof_mes": [{"Medico": "Amaro Silvia", "Mes-Año": "octubre 2025", "mes_order": 202509, "recetas": 3}, {"Medico": "Amaro Silvia", "Mes-Año": "noviembre 2025", "mes_order": 202510, "recetas": 4}, {"Medico": "Amaro Silvia", "Mes-Año": "diciembre 2025", "mes_order": 202511, "recetas": 5}, {"Medico": "Amaro Silvia", "Mes-Año": "enero 2026", "mes_order": 202600, "recetas": 3}, {"Medico": "Amaro Silvia", "Mes-Año": "marzo 2026", "mes_order": 202602, "recetas": 1}, {"Medico": "Benítez Guido", "Mes-Año": "octubre 2025", "mes_order": 202509, "recetas": 8}, {"Medico": "Benítez Guido", "Mes-Año": "noviembre 2025", "mes_order": 202510, "recetas": 8}, {"Medico": "Benítez Guido", "Mes-Año": "diciembre 2025", "mes_order": 202511, "recetas": 1}, {"Medico": "Benítez Guido", "Mes-Año": "enero 2026", "mes_order": 202600, "recetas": 12}, {"Medico": "Benítez Guido", "Mes-Año": "marzo 2026", "mes_order": 202602, "recetas": 2}, {"Medico": "Bruquetas Mercedes", "Mes-Año": "enero 2026", "mes_order": 202600, "recetas": 1}, {"Medico": "Checo Rossi", "Mes-Año": "septiembre 2025", "mes_order": 202508, "recetas": 3}, {"Medico": "Checo Rossi", "Mes-Año": "octubre 2025", "mes_order": 202509, "recetas": 3}, {"Medico": "Checo Rossi", "Mes-Año": "noviembre 2025", "mes_order": 202510, "recetas": 4}, {"Medico": "Checo Rossi", "Mes-Año": "diciembre 2025", "mes_order": 202511, "recetas": 5}, {"Medico": "Checo Rossi", "Mes-Año": "enero 2026", "mes_order": 202600, "recetas": 5}, {"Medico": "Checo Rossi", "Mes-Año": "marzo 2026", "mes_order": 202602, "recetas": 3}, {"Medico": "Chiesa Candelaria", "Mes-Año": "noviembre 2025", "mes_order": 202510, "recetas": 1}, {"Medico": "Chiesa Candelaria", "Mes-Año": "diciembre 2025", "mes_order": 202511, "recetas": 1}, {"Medico": "Chiesa Candelaria", "Mes-Año": "enero 2026", "mes_order": 202600, "recetas": 2}, {"Medico": "Chiesa Candelaria", "Mes-Año": "marzo 2026", "mes_order": 202602, "recetas": 2}, {"Medico": "Espínola Luis", "Mes-Año": "noviembre 2025", "mes_order": 202510, "recetas": 1}, {"Medico": "Espínola Luis", "Mes-Año": "diciembre 2025", "mes_order": 202511, "recetas": 3}, {"Medico": "Espínola Luis", "Mes-Año": "enero 2026", "mes_order": 202600, "recetas": 2}, {"Medico": "Guerrero Laura", "Mes-Año": "septiembre 2025", "mes_order": 202508, "recetas": 3}, {"Medico": "Guerrero Laura", "Mes-Año": "octubre 2025", "mes_order": 202509, "recetas": 7}, {"Medico": "Guerrero Laura", "Mes-Año": "noviembre 2025", "mes_order": 202510, "recetas": 8}, {"Medico": "Guerrero Laura", "Mes-Año": "diciembre 2025", "mes_order": 202511, "recetas": 7}, {"Medico": "Guerrero Laura", "Mes-Año": "enero 2026", "mes_order": 202600, "recetas": 5}, {"Medico": "Guerrero Laura", "Mes-Año": "febrero 2026", "mes_order": 202601, "recetas": 3}, {"Medico": "Guerrero Laura", "Mes-Año": "marzo 2026", "mes_order": 202602, "recetas": 1}, {"Medico": "Leguizamón Miriam", "Mes-Año": "octubre 2025", "mes_order": 202509, "recetas": 1}, {"Medico": "Leguizamón Miriam", "Mes-Año": "enero 2026", "mes_order": 202600, "recetas": 1}, {"Medico": "Luza Lucas Felipe", "Mes-Año": "marzo 2026", "mes_order": 202602, "recetas": 1}, {"Medico": "Paccasassi Alejandro", "Mes-Año": "octubre 2025", "mes_order": 202509, "recetas": 12}, {"Medico": "Paccasassi Alejandro", "Mes-Año": "noviembre 2025", "mes_order": 202510, "recetas": 10}, {"Medico": "Paccasassi Alejandro", "Mes-Año": "diciembre 2025", "mes_order": 202511, "recetas": 8}, {"Medico": "Paccasassi Alejandro", "Mes-Año": "enero 2026", "mes_order": 202600, "recetas": 12}, {"Medico": "Paccasassi Alejandro", "Mes-Año": "febrero 2026", "mes_order": 202601, "recetas": 4}, {"Medico": "Paccasassi Alejandro", "Mes-Año": "marzo 2026", "mes_order": 202602, "recetas": 9}, {"Medico": "Paniagua Matias", "Mes-Año": "octubre 2025", "mes_order": 202509, "recetas": 1}, {"Medico": "Reynoso Maximiliano", "Mes-Año": "octubre 2025", "mes_order": 202509, "recetas": 1}, {"Medico": "Rodríguez Patricia", "Mes-Año": "octubre 2025", "mes_order": 202509, "recetas": 4}, {"Medico": "Rodríguez Patricia", "Mes-Año": "noviembre 2025", "mes_order": 202510, "recetas": 1}, {"Medico": "Rodríguez Patricia", "Mes-Año": "diciembre 2025", "mes_order": 202511, "recetas": 3}, {"Medico": "Rodríguez Patricia", "Mes-Año": "enero 2026", "mes_order": 202600, "recetas": 3}, {"Medico": "Rodríguez Patricia", "Mes-Año": "marzo 2026", "mes_order": 202602, "recetas": 1}, {"Medico": "Román Adrián", "Mes-Año": "octubre 2025", "mes_order": 202509, "recetas": 1}, {"Medico": "Román Adrián", "Mes-Año": "noviembre 2025", "mes_order": 202510, "recetas": 1}, {"Medico": "Román Adrián", "Mes-Año": "enero 2026", "mes_order": 202600, "recetas": 1}, {"Medico": "Román Adrián", "Mes-Año": "febrero 2026", "mes_order": 202601, "recetas": 1}, {"Medico": "Román Adrián", "Mes-Año": "marzo 2026", "mes_order": 202602, "recetas": 2}, {"Medico": "Sanchez Oscar", "Mes-Año": "enero 2026", "mes_order": 202600, "recetas": 1}, {"Medico": "Sotelo Franco", "Mes-Año": "febrero 2026", "mes_order": 202601, "recetas": 1}, {"Medico": "Zeballo Evelyn", "Mes-Año": "diciembre 2025", "mes_order": 202511, "recetas": 1}]};
+
+var COLORS = {
+  blue:'#378ADD', green:'#639922', amber:'#EF9F27', red:'#E24B4A',
+  teal:'#1D9E75', coral:'#D85A30', purple:'#7F77DD', gray:'#888780'
+};
+var CAT_COLORS = {Generales:'#378ADD', Insulinas:'#EF9F27', Descartables:'#1D9E75'};
+var MONTHS_SHORT = D.meses_short;
+
+// --- KPIs totales ---
+var totR = D.kpi.reduce(function(a,b){return a+b.recetas;},0);
+var totP = D.kpi.reduce(function(a,b){return a+b.pacientes;},0);
+var totPres = D.kpi.reduce(function(a,b){return a+b.prescripciones;},0);
+var totVol = D.kpi.reduce(function(a,b){return a+b.volumen;},0);
+document.getElementById('kpisTotal').innerHTML =
+  kpiCard('Total recetas',totR,'') +
+  kpiCard('Pacientes atendidos',totP,'únicos') +
+  kpiCard('Prescripciones',totPres,'registros') +
+  kpiCard('Unidades dispensadas',Math.round(totVol),'') +
+  kpiCard('Procesos truncados',D.trunc_list.length,'sin retiro') +
+  kpiCard('Recetas demoradas',D.dem_list.length,'>15 días');
+
+function kpiCard(l,v,s){
+  return '<div class="kpi"><div class="kpi-l">'+l+'</div><div class="kpi-v">'+v+'</div>'+(s?'<div class="kpi-s">'+s+'</div>':'')+'</div>';
+}
+
+// --- Chart Vol ---
+var chartVol1Inst = null;
+function buildChartVol(type){
+  if(chartVol1Inst) chartVol1Inst.destroy();
+  var datasets;
+  if(type==='recetas'){
+    datasets = [
+      {label:'Recetas',data:D.kpi.map(function(d){return d.recetas;}),backgroundColor:'#B5D4F4',borderColor:'#378ADD',borderWidth:1,borderRadius:3},
+      {label:'Pacientes',data:D.kpi.map(function(d){return d.pacientes;}),backgroundColor:'#9FE1CB',borderColor:'#1D9E75',borderWidth:1,borderRadius:3}
+    ];
+  } else {
+    datasets = [
+      {label:'Prescripciones',data:D.kpi.map(function(d){return d.prescripciones;}),backgroundColor:'#F5C4B3',borderColor:'#D85A30',borderWidth:1,borderRadius:3},
+      {label:'Volumen (u)',data:D.kpi.map(function(d){return d.volumen;}),backgroundColor:'#CECBF6',borderColor:'#7F77DD',borderWidth:1,borderRadius:3}
+    ];
+  }
+  chartVol1Inst = new Chart(document.getElementById('chartVol1'),{
+    type:'bar',
+    data:{labels:MONTHS_SHORT, datasets:datasets},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'top',labels:{font:{size:11},boxWidth:12}}},
+      scales:{x:{ticks:{font:{size:11}},grid:{display:false}},y:{ticks:{font:{size:11}},grid:{color:'rgba(128,128,128,0.1)'}}}}
+  });
+}
+buildChartVol('recetas');
+
+function switchVolTab(type, el){
+  document.querySelectorAll('.tab-sm').forEach(function(t){t.classList.remove('active');});
+  el.classList.add('active');
+  buildChartVol(type);
+}
+
+// --- Categorías ---
+var cats = ['Generales','Insulinas','Descartables'];
+function getCatData(field){
+  return cats.map(function(cat){
+    return D.meses_short.map(function(ms, i){
+      var mes = D.meses[i];
+      var found = D.cat.filter(function(r){return r['Mes-Año']===mes && r['Categoría']===cat;});
+      return found.length ? found[0][field] : 0;
+    });
+  });
+}
+var catN = getCatData('n'), catV = getCatData('vol');
+function buildCatChart(id, dataArr, label){
+  new Chart(document.getElementById(id),{
+    type:'bar',
+    data:{labels:MONTHS_SHORT, datasets:cats.map(function(c,i){
+      return {label:c,data:dataArr[i],backgroundColor:Object.values(CAT_COLORS)[i],borderRadius:2,borderWidth:0};
+    })},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'top',labels:{font:{size:10},boxWidth:10}}},
+      scales:{x:{stacked:true,ticks:{font:{size:10}},grid:{display:false}},
+              y:{stacked:true,ticks:{font:{size:10}},grid:{color:'rgba(128,128,128,0.08)'}}}}
+  });
+}
+buildCatChart('chartCatN', catN);
+buildCatChart('chartCatV', catV);
+
+// --- Brechas ---
+function buildBrecha(id, field){
+  var vals = D.brechas_mes.map(function(d){return d[field]!==''?parseFloat(d[field]):null;});
+  var color = field.indexOf('gest')>=0 ? '#D85A30' : '#7F77DD';
+  new Chart(document.getElementById(id),{
+    type:'bar',
+    data:{labels:MONTHS_SHORT, datasets:[{label:'Días prom.',data:vals,backgroundColor:color+'44',borderColor:color,borderWidth:1,borderRadius:3}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{x:{ticks:{font:{size:10}},grid:{display:false}},
+              y:{ticks:{font:{size:10}},grid:{color:'rgba(128,128,128,0.08)'}}}}
+  });
+}
+buildBrecha('chartBG','avg_gest');
+buildBrecha('chartBR','avg_ret');
+
+// --- Truncados ---
+document.getElementById('truncTotal').textContent = '('+D.trunc_list.length+' total)';
+var trRows = D.trunc_list.map(function(r){
+  return '<tr><td>'+r['DNI']+'</td><td>'+r['Apellidos']+', '+r['Nombres']+'</td><td>'+fd(r['Fecha Recepción'])+'</td><td>'+fd(r['Fecha Producto Disponible'])+'</td></tr>';
+}).join('');
+document.getElementById('truncTable').innerHTML='<table><thead><tr><th>DNI</th><th>Paciente</th><th>Recepción</th><th>Disponible</th></tr></thead><tbody>'+trRows+'</tbody></table>';
+
+// --- Demoradas ---
+document.getElementById('demTotal').textContent = '('+D.dem_list.length+' total)';
+var demRows = D.dem_list.map(function(r){
+  var dias = parseInt(r.dias_rec)||0;
+  var cls = dias>30?'badge-red':'badge-amber';
+  return '<tr><td>'+r['DNI']+'</td><td>'+r['Apellidos']+', '+r['Nombres']+'</td><td>'+fd(r['Fecha Recepción'])+'</td><td><span class="badge '+cls+'">'+dias+' días</span></td></tr>';
+}).join('');
+document.getElementById('demTable').innerHTML='<table><thead><tr><th>DNI</th><th>Paciente</th><th>Recepción</th><th>Demora</th></tr></thead><tbody>'+demRows+'</tbody></table>';
+
+// --- Recurrencia ---
+var recRows = D.recurrencia.slice(0,20).map(function(r){
+  var mesesCells = D.meses.map(function(m){
+    var present = r.meses && r.meses.indexOf(m)>=0;
+    return '<td style="text-align:center">'+(present?'<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:'+COLORS.blue+'"></span>':'<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--bg2);border:0.5px solid var(--b1)"></span>')+'</td>';
+  }).join('');
+  var pct = parseInt(r.pct)||0;
+  var pctColor = pct>=75?COLORS.green:pct>=50?COLORS.amber:COLORS.red;
+  return '<tr><td>'+r['DNI']+'</td><td>'+r['ap']+', '+r['nom']+'</td><td style="text-align:center">'+r['n']+'</td>'+mesesCells+'<td><span style="font-size:11px;font-weight:500;color:'+pctColor+'">'+pct+'%</span></td></tr>';
+}).join('');
+var mesHeaders = D.meses.map(function(m){return '<th style="text-align:center;font-size:9px">'+m.split(' ')[0].substring(0,3)+'</th>';}).join('');
+document.getElementById('recurrTable').innerHTML='<table><thead><tr><th>DNI</th><th>Paciente</th><th style="text-align:center">Rec.</th>'+mesHeaders+'<th style="text-align:center">Recurrencia</th></tr></thead><tbody>'+recRows+'</tbody></table>';
+
+// --- Profesionales ---
+var profLabels = D.prof_total.slice(0,8).map(function(p){return p.Medico;});
+var profVals = D.prof_total.slice(0,8).map(function(p){return p.recetas;});
+new Chart(document.getElementById('chartProf'),{
+  type:'bar',
+  data:{labels:profLabels, datasets:[{label:'Recetas',data:profVals,backgroundColor:'#B5D4F4',borderColor:'#378ADD',borderWidth:1,borderRadius:3}]},
+  options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',
+    plugins:{legend:{display:false}},
+    scales:{x:{ticks:{font:{size:10}},grid:{color:'rgba(128,128,128,0.08)'}},y:{ticks:{font:{size:11}},grid:{display:false}}}}
+});
+var maxR = D.prof_total[0]?D.prof_total[0].recetas:1;
+var profRows = D.prof_total.map(function(p){
+  var pct = Math.round(p.recetas/maxR*100);
+  return '<tr><td>'+p.Medico+'</td><td style="text-align:center">'+p.recetas+'</td><td style="text-align:center">'+p.pacientes+'</td><td style="text-align:center">'+p.meses_act+'</td><td><div style="width:80px;display:inline-flex;align-items:center;gap:4px"><div style="flex:1;height:5px;background:var(--bg2);border-radius:3px"><div style="width:'+pct+'%;height:100%;background:var(--blue);border-radius:3px"></div></div></div></td></tr>';
+}).join('');
+document.getElementById('profTable').innerHTML='<table><thead><tr><th>Profesional</th><th style="text-align:center">Recetas</th><th style="text-align:center">Pacientes</th><th style="text-align:center">Meses</th><th>Actividad</th></tr></thead><tbody>'+profRows+'</tbody></table>';
+
+function fd(v){
+  if(!v||String(v).trim()==='') return '—';
+  var d=new Date(String(v));
+  if(isNaN(d)) return v;
+  return d.toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'});
+}
+</script>
+</body>
+</html>
