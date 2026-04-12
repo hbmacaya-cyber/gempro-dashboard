@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>GEMPRO Farma — HIG</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg1:#fff;--bg2:#f5f5f3;--bg3:#eeede9;--t1:#1a1a18;--t2:#5f5e5a;--t3:#888780;--b1:rgba(0,0,0,0.1);--b2:rgba(0,0,0,0.2);--r1:8px;--r2:12px;--blue:#378ADD;--blue-l:#E6F1FB}
+@media(prefers-color-scheme:dark){:root{--bg1:#1e1e1c;--bg2:#2a2a28;--bg3:#242422;--t1:#e8e7e2;--t2:#a8a7a2;--t3:#6e6d69;--b1:rgba(255,255,255,0.08);--b2:rgba(255,255,255,0.16);--blue-l:#0C447C}}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg3);color:var(--t1);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem}
+.wrap{width:100%;max-width:560px}
+.brand{text-align:center;margin-bottom:2.5rem}
+.brand h1{font-size:22px;font-weight:500;color:var(--t1);display:flex;align-items:center;justify-content:center;gap:10px}
+.dot{width:10px;height:10px;border-radius:50%;background:#639922;display:inline-block}
+.brand p{font-size:14px;color:var(--t2);margin-top:6px}
+.grid{display:flex;flex-direction:column;gap:12px}
+.card{background:var(--bg1);border:0.5px solid var(--b1);border-radius:var(--r2);padding:1.25rem 1.5rem;text-decoration:none;display:flex;align-items:center;gap:1rem;transition:border-color .15s,box-shadow .15s}
+.card:hover{border-color:var(--blue);box-shadow:0 0 0 3px rgba(55,138,221,0.1)}
+.card-icon{width:44px;height:44px;border-radius:var(--r1);background:var(--blue-l);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px}
+.card-text{flex:1;min-width:0}
+.card-title{font-size:15px;font-weight:500;color:var(--t1);margin-bottom:3px}
+.card-desc{font-size:12px;color:var(--t2);line-height:1.5}
+.card-arrow{font-size:18px;color:var(--t3);flex-shrink:0}
+.divider{display:flex;align-items:center;gap:12px;margin:8px 0}
+.divider span{font-size:11px;color:var(--t3);white-space:nowrap}
+.divider hr{flex:1;border:none;border-top:0.5px solid var(--b1)}
+.footer{text-align:center;margin-top:2rem;font-size:12px;color:var(--t3)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand">
+    <h1><span class="dot"></span>GEMPRO Farma — HIG</h1>
+    <p>Sistema de gestión de recetas y medicamentos</p>
+  </div>
+
+  <div class="grid">
+
+    <a href="index.html" class="card">
+      <div class="card-icon">&#128100;</div>
+      <div class="card-text">
+        <div class="card-title">Consulta por paciente</div>
+        <div class="card-desc">Buscá por DNI y visualizá el historial completo de recetas, medicamentos, fechas y estado de gestión</div>
+      </div>
+      <div class="card-arrow">&#8250;</div>
+    </a>
+
+    <a href="general.html" class="card">
+      <div class="card-icon">&#128202;</div>
+      <div class="card-text">
+        <div class="card-title">Análisis general</div>
+        <div class="card-desc">KPIs de volumen, categorización, tiempos de proceso, alertas operativas, recurrencia y productividad por profesional</div>
+      </div>
+      <div class="card-arrow">&#8250;</div>
+    </a>
+
+    <div class="divider"><hr/><span>próximamente</span><hr/></div>
+
+    <div class="card" style="opacity:.45;pointer-events:none;cursor:default">
+      <div class="card-icon" style="background:var(--bg2)">&#43;</div>
+      <div class="card-text">
+        <div class="card-title" style="color:var(--t2)">Nuevas vistas</div>
+        <div class="card-desc">Se irán agregando módulos adicionales a medida que se desarrollen</div>
+      </div>
+      <div class="card-arrow" style="color:transparent">&#8250;</div>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    Datos actualizados desde Google Sheets en tiempo real
+  </div>
+</div>
+</body>
+</html>
