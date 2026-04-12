@@ -81,103 +81,47 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
   <div id="resultArea"><div class="empty"><span class="spin"></span>Cargando datos...</div></div>
 </div>
-
 <script>
-var PROXY = 'https://corsproxy.io/?';
-var BASE_R = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTtspEWMBzvbRVDJnaqhIFoBdgFvkvx80i9BlenpBIn94b6DyBYwVLlssqFShYebv9BBfdE4ajL50Yk/pub?gid=0&single=true&output=csv';
-var BASE_P = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTtspEWMBzvbRVDJnaqhIFoBdgFvkvx80i9BlenpBIn94b6DyBYwVLlssqFShYebv9BBfdE4ajL50Yk/pub?gid=1031286687&single=true&output=csv';
-var URL_R = PROXY + encodeURIComponent(BASE_R);
-var URL_P = PROXY + encodeURIComponent(BASE_P);
-
+var API = 'https://script.google.com/macros/s/AKfycbx3eiaKkIkNBHnRjMfF-uTBPgn_rVc9fPcjyDSa_IGjmc1uezZu96jhBZQg_mhrLQKD/exec';
 var REC = [], PRD = [], BY_RECETA = {}, loaded = false;
-
-function mostrarError(msg) {
-  document.getElementById('errArea').innerHTML = '<div class="errbox">Error al cargar datos: ' + msg + '<br><small>Verificá que las hojas estén publicadas en Google Sheets.</small></div>';
-  document.getElementById('resultArea').innerHTML = '<div class="empty">No se pudieron cargar los datos.</div>';
-}
-
-function fetchCSV(url) {
-  return new Promise(function(resolve, reject) {
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', url, true);
-    xhr.timeout = 15000;
-    xhr.onload = function() {
-      if (xhr.status === 200) { resolve(xhr.responseText); }
-      else { reject(new Error('HTTP ' + xhr.status + ' al cargar ' + url)); }
-    };
-    xhr.onerror = function() { reject(new Error('Error de red. ¿La hoja está publicada?')); };
-    xhr.ontimeout = function() { reject(new Error('Timeout: Google Sheets tardó demasiado.')); };
-    xhr.send();
-  });
-}
-
-function splitLine(line) {
-  var cols = [], cur = '', inQ = false;
-  for (var i = 0; i < line.length; i++) {
-    var c = line[i];
-    if (c === '"') { inQ = !inQ; }
-    else if (c === ',' && !inQ) { cols.push(cur); cur = ''; }
-    else { cur += c; }
-  }
-  cols.push(cur);
-  return cols;
-}
-
-function parsearCSV(texto) {
-  var lineas = texto.replace(/\r/g, '').split('\n');
-  if (lineas.length < 2) return [];
-  var headers = splitLine(lineas[0]);
-  var resultado = [];
-  for (var i = 1; i < lineas.length; i++) {
-    var linea = lineas[i].trim();
-    if (!linea) continue;
-    var cols = splitLine(linea);
-    var fila = {};
-    for (var j = 0; j < headers.length; j++) {
-      fila[headers[j].trim()] = (cols[j] || '').trim();
-    }
-    if (fila[headers[0].trim()]) resultado.push(fila);
-  }
-  return resultado;
-}
-
-function procesarDatos(textoR, textoP) {
-  REC = parsearCSV(textoR).filter(function(r) { return r['DNI'] && r['DNI'].trim(); });
-  PRD = parsearCSV(textoP).filter(function(r) { return r['ID Receta'] && r['ID Receta'].trim(); });
-  BY_RECETA = {};
-  for (var i = 0; i < PRD.length; i++) {
-    var id = PRD[i]['ID Receta'].trim();
-    if (!BY_RECETA[id]) BY_RECETA[id] = [];
-    BY_RECETA[id].push(PRD[i]);
-  }
-  loaded = true;
-  var dnis = {}, meds = {}, ret = 0;
-  for (var i = 0; i < REC.length; i++) {
-    dnis[REC[i]['DNI']] = 1;
-    if (REC[i]['Fecha Retiro x Paciente'] && REC[i]['Fecha Retiro x Paciente'].trim()) ret++;
-  }
-  for (var i = 0; i < PRD.length; i++) { if (PRD[i]['Producto']) meds[PRD[i]['Producto']] = 1; }
-  document.getElementById('mTotal').textContent = REC.length;
-  document.getElementById('mPac').textContent   = Object.keys(dnis).length;
-  document.getElementById('mMeds').textContent  = Object.keys(meds).length;
-  document.getElementById('mRet').textContent   = ret;
-  document.getElementById('errArea').innerHTML  = '';
-  document.getElementById('resultArea').innerHTML = '<div class="empty">Ingresá un DNI para consultar el historial</div>';
-}
 
 function cargarDatos() {
   loaded = false;
   document.getElementById('errArea').innerHTML = '';
-  document.getElementById('resultArea').innerHTML = '<div class="empty"><span class="spin"></span>Cargando datos desde Google Sheets...</div>';
-  ['mTotal','mPac','mMeds','mRet'].forEach(function(id) { document.getElementById(id).textContent = '—'; });
+  document.getElementById('resultArea').innerHTML = '<div class="empty"><span class="spin"></span>Cargando datos...</div>';
+  ['mTotal','mPac','mMeds','mRet'].forEach(function(id){ document.getElementById(id).textContent = '—'; });
 
-  fetchCSV(URL_R).then(function(t1) {
-    return fetchCSV(URL_P).then(function(t2) {
-      procesarDatos(t1, t2);
+  fetch(API + '?sheet=Recetas')
+    .then(function(r){ return r.json(); })
+    .then(function(recetas) {
+      REC = recetas;
+      return fetch(API + '?sheet=RecetasProductos').then(function(r){ return r.json(); });
+    })
+    .then(function(productos) {
+      PRD = productos;
+      BY_RECETA = {};
+      PRD.forEach(function(p) {
+        var id = String(p['ID Receta']||'').trim();
+        if (!BY_RECETA[id]) BY_RECETA[id] = [];
+        BY_RECETA[id].push(p);
+      });
+      loaded = true;
+      var dnis = {}, meds = {}, ret = 0;
+      REC.forEach(function(r) {
+        dnis[r['DNI']] = 1;
+        if (String(r['Fecha Retiro x Paciente']||'').trim()) ret++;
+      });
+      PRD.forEach(function(p){ if (p['Producto']) meds[p['Producto']] = 1; });
+      document.getElementById('mTotal').textContent = REC.length;
+      document.getElementById('mPac').textContent   = Object.keys(dnis).length;
+      document.getElementById('mMeds').textContent  = Object.keys(meds).length;
+      document.getElementById('mRet').textContent   = ret;
+      document.getElementById('resultArea').innerHTML = '<div class="empty">Ingresá un DNI para consultar el historial</div>';
+    })
+    .catch(function(err) {
+      document.getElementById('errArea').innerHTML = '<div class="errbox">Error al cargar: ' + err.message + '</div>';
+      document.getElementById('resultArea').innerHTML = '<div class="empty">No se pudieron cargar los datos.</div>';
     });
-  }).catch(function(err) {
-    mostrarError(err.message);
-  });
 }
 
 function fd(v) {
@@ -185,141 +129,130 @@ function fd(v) {
   v = String(v).trim();
   if (!v) return '—';
   var d = new Date(v);
-  return isNaN(d.getTime()) ? v : d.toLocaleDateString('es-AR', {day:'2-digit',month:'2-digit',year:'numeric'});
+  return isNaN(d.getTime()) ? v : d.toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'});
 }
 
 function getSt(r) {
-  if (r['Fecha Retiro x Paciente']  && r['Fecha Retiro x Paciente'].trim())  return {l:'Retirado',   c:'ok'};
-  if (r['Fecha Producto Disponible'] && r['Fecha Producto Disponible'].trim()) return {l:'Disponible', c:'dsp'};
-  if (r['Fecha Inicio Gestión']      && r['Fecha Inicio Gestión'].trim())      return {l:'En gestión', c:'pnd'};
+  if (String(r['Fecha Retiro x Paciente']||'').trim())  return {l:'Retirado',   c:'ok'};
+  if (String(r['Fecha Producto Disponible']||'').trim()) return {l:'Disponible', c:'dsp'};
+  if (String(r['Fecha Inicio Gestión']||'').trim())      return {l:'En gestión', c:'pnd'};
   return {l:'Recibida', c:'pnd'};
 }
 
 function iniciales(r) {
-  return ((r['Apellidos']||'').charAt(0) + (r['Nombres']||'').charAt(0)).toUpperCase() || '??';
+  return ((r['Apellidos']||'').charAt(0)+(r['Nombres']||'').charAt(0)).toUpperCase()||'??';
 }
 
 function tog(idx) {
-  var rb = document.getElementById('rb' + idx);
-  var cv = document.getElementById('cv' + idx);
+  var rb = document.getElementById('rb'+idx);
+  var cv = document.getElementById('cv'+idx);
   if (rb) rb.classList.toggle('open');
   if (cv) cv.classList.toggle('open');
 }
 
 function buscar(dni) {
-  if (!loaded) {
-    document.getElementById('resultArea').innerHTML = '<div class="empty"><span class="spin"></span>Esperando datos...</div>';
-    setTimeout(function() { buscar(dni); }, 600);
-    return;
-  }
+  if (!loaded) { setTimeout(function(){ buscar(dni); }, 500); return; }
   var dniStr = String(dni).trim();
-  var recetas = REC.filter(function(r) { return String(r['DNI']).trim() === dniStr; });
+  var recetas = REC.filter(function(r){ return String(r['DNI']).trim() === dniStr; });
   var area = document.getElementById('resultArea');
   if (!recetas.length) { area.innerHTML = '<div class="empty">No se encontró paciente con DNI ' + dniStr + '</div>'; return; }
 
   var p0 = recetas[0];
-  var conRet = recetas.filter(function(r) { return r['Fecha Retiro x Paciente'] && r['Fecha Retiro x Paciente'].trim(); }).length;
+  var conRet = recetas.filter(function(r){ return String(r['Fecha Retiro x Paciente']||'').trim(); }).length;
   var MO = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-  function mo(s) { var p = String(s||'').toLowerCase().split(' '); return (parseInt(p[1])||0)*12 + MO.indexOf(p[0]); }
+  function mo(s){ var p=String(s||'').toLowerCase().split(' '); return (parseInt(p[1])||0)*12+MO.indexOf(p[0]); }
   var mesesMap = {};
-  recetas.forEach(function(r) { if (r['Mes-Año']) mesesMap[r['Mes-Año']] = 1; });
-  var meses = Object.keys(mesesMap).sort(function(a,b) { return mo(a)-mo(b); });
+  recetas.forEach(function(r){ if(r['Mes-Año']) mesesMap[r['Mes-Año']]=1; });
+  var meses = Object.keys(mesesMap).sort(function(a,b){ return mo(a)-mo(b); });
   var tMeds = {};
-  recetas.forEach(function(r) {
-    (BY_RECETA[(r['ID Receta']||'').trim()]||[]).forEach(function(p) { if (p['Producto']) tMeds[p['Producto']] = 1; });
+  recetas.forEach(function(r){
+    (BY_RECETA[(r['ID Receta']||'').trim()]||[]).forEach(function(p){ if(p['Producto']) tMeds[p['Producto']]=1; });
   });
 
   var container = document.createElement('div');
 
   var pcrd = document.createElement('div'); pcrd.className = 'pcrd';
-  pcrd.innerHTML = '<div class="phdr"><div class="av">' + iniciales(p0) + '</div>'
-    + '<div><div class="pn">' + (p0['Apellidos']||'') + ', ' + (p0['Nombres']||'') + '</div>'
-    + '<div class="pd">DNI: ' + dniStr + '</div></div></div>'
-    + '<div class="psts">'
-    + '<div class="ps">Recetas: <strong>' + recetas.length + '</strong></div>'
-    + '<div class="ps">Retiradas: <strong>' + conRet + '</strong></div>'
-    + '<div class="ps">Medicamentos: <strong>' + Object.keys(tMeds).length + '</strong></div>'
-    + '<div class="ps">Período: <strong>' + (meses.length ? meses[0] + (meses.length > 1 ? ' → ' + meses[meses.length-1] : '') : '—') + '</strong></div>'
-    + '</div>';
+  pcrd.innerHTML = '<div class="phdr"><div class="av">'+iniciales(p0)+'</div>'
+    +'<div><div class="pn">'+(p0['Apellidos']||'')+', '+(p0['Nombres']||'')+'</div>'
+    +'<div class="pd">DNI: '+dniStr+'</div></div></div>'
+    +'<div class="psts">'
+    +'<div class="ps">Recetas: <strong>'+recetas.length+'</strong></div>'
+    +'<div class="ps">Retiradas: <strong>'+conRet+'</strong></div>'
+    +'<div class="ps">Medicamentos: <strong>'+Object.keys(tMeds).length+'</strong></div>'
+    +'<div class="ps">Período: <strong>'+(meses.length?meses[0]+(meses.length>1?' → '+meses[meses.length-1]:''):'—')+'</strong></div>'
+    +'</div>';
   container.appendChild(pcrd);
 
   var tit = document.createElement('div'); tit.className = 'stit';
-  tit.textContent = 'Historial de recetas (' + recetas.length + ')';
+  tit.textContent = 'Historial de recetas ('+recetas.length+')';
   container.appendChild(tit);
 
   recetas.forEach(function(r, i) {
     var s = getSt(r);
     var ri = document.createElement('div'); ri.className = 'ri';
-
     var rh = document.createElement('div'); rh.className = 'rh';
-    var cv = document.createElement('span'); cv.className = 'cv'; cv.id = 'cv' + i; cv.innerHTML = '&#9658;';
-    var rid = document.createElement('span'); rid.className = 'rid'; rid.textContent = r['ID Receta'] || '';
-    var rd  = document.createElement('span'); rd.className  = 'rd';  rd.textContent  = fd(r['Fecha Recepción']);
-    var bdg = document.createElement('span'); bdg.className = 'bdg ' + s.c; bdg.textContent = s.l;
+    var cv = document.createElement('span'); cv.className='cv'; cv.id='cv'+i; cv.innerHTML='&#9658;';
+    var rid = document.createElement('span'); rid.className='rid'; rid.textContent=r['ID Receta']||'';
+    var rd  = document.createElement('span'); rd.className='rd';   rd.textContent=fd(r['Fecha Recepción']);
+    var bdg = document.createElement('span'); bdg.className='bdg '+s.c; bdg.textContent=s.l;
     rh.appendChild(cv); rh.appendChild(rid); rh.appendChild(rd); rh.appendChild(bdg);
-    rh.addEventListener('click', (function(n) { return function() { tog(n); }; })(i));
+    rh.addEventListener('click', (function(n){ return function(){ tog(n); }; })(i));
 
-    var rb = document.createElement('div'); rb.className = 'rb'; rb.id = 'rb' + i;
-    var dg = document.createElement('div'); dg.className = 'dg';
+    var rb = document.createElement('div'); rb.className='rb'; rb.id='rb'+i;
+    var dg = document.createElement('div'); dg.className='dg';
     [['Recepción','Fecha Recepción'],['Inicio gestión','Fecha Inicio Gestión'],
      ['Disponible','Fecha Producto Disponible'],['Retiro','Fecha Retiro x Paciente']
-    ].forEach(function(f) {
+    ].forEach(function(f){
       var d = document.createElement('div');
-      d.innerHTML = '<div class="dl">' + f[0] + '</div><div class="dv">' + fd(r[f[1]]) + '</div>';
+      d.innerHTML='<div class="dl">'+f[0]+'</div><div class="dv">'+fd(r[f[1]])+'</div>';
       dg.appendChild(d);
     });
     rb.appendChild(dg);
 
-    if (r['Médico'] && r['Médico'].trim()) {
-      var mdr = document.createElement('div'); mdr.className = 'mdr';
-      mdr.innerHTML = 'Médico: <strong>' + r['Médico'] + '</strong>';
-      rb.appendChild(mdr);
+    if (r['Médico']&&r['Médico'].trim()) {
+      var mdr=document.createElement('div'); mdr.className='mdr';
+      mdr.innerHTML='Médico: <strong>'+r['Médico']+'</strong>'; rb.appendChild(mdr);
     }
-    if (r['Observaciones'] && r['Observaciones'].trim()) {
-      var obs = document.createElement('div'); obs.className = 'obsv';
-      obs.textContent = r['Observaciones'];
-      rb.appendChild(obs);
+    if (r['Observaciones']&&r['Observaciones'].trim()) {
+      var obs=document.createElement('div'); obs.className='obsv';
+      obs.textContent=r['Observaciones']; rb.appendChild(obs);
     }
 
-    var prods = BY_RECETA[(r['ID Receta']||'').trim()] || [];
+    var prods = BY_RECETA[(r['ID Receta']||'').trim()]||[];
     if (prods.length) {
-      var ps2 = document.createElement('div'); ps2.className = 'ps2';
-      var pt  = document.createElement('div'); pt.className  = 'pt';
-      pt.textContent = 'Medicamentos (' + prods.length + ')';
-      ps2.appendChild(pt);
-      var tbl = document.createElement('table'); tbl.className = 'ptbl';
-      tbl.innerHTML = '<thead><tr><th>Producto</th><th>Categoría</th><th style="text-align:center">Cant.</th><th>Origen</th></tr></thead>';
-      var tbody = document.createElement('tbody');
-      prods.forEach(function(p) {
-        var tr = document.createElement('tr');
-        tr.innerHTML = '<td>' + (p['Producto']||'—') + '</td>'
-          + '<td><span class="cp">' + (p['Categoría']||'—') + '</span></td>'
-          + '<td style="text-align:center">' + (p['Cantidad Prescripta']||'—') + '</td>'
-          + '<td style="color:var(--t2)">' + (p['Origen Producto']||'—') + '</td>';
+      var ps2=document.createElement('div'); ps2.className='ps2';
+      var pt=document.createElement('div'); pt.className='pt';
+      pt.textContent='Medicamentos ('+prods.length+')'; ps2.appendChild(pt);
+      var tbl=document.createElement('table'); tbl.className='ptbl';
+      tbl.innerHTML='<thead><tr><th>Producto</th><th>Categoría</th><th style="text-align:center">Cant.</th><th>Origen</th></tr></thead>';
+      var tbody=document.createElement('tbody');
+      prods.forEach(function(p){
+        var tr=document.createElement('tr');
+        tr.innerHTML='<td>'+(p['Producto']||'—')+'</td>'
+          +'<td><span class="cp">'+(p['Categoría']||'—')+'</span></td>'
+          +'<td style="text-align:center">'+(p['Cantidad Prescripta']||'—')+'</td>'
+          +'<td style="color:var(--t2)">'+(p['Origen Producto']||'—')+'</td>';
         tbody.appendChild(tr);
       });
       tbl.appendChild(tbody); ps2.appendChild(tbl); rb.appendChild(ps2);
     }
-
     ri.appendChild(rh); ri.appendChild(rb); container.appendChild(ri);
   });
 
-  area.innerHTML = '';
-  area.appendChild(container);
+  area.innerHTML=''; area.appendChild(container);
 }
 
-document.getElementById('btnBuscar').addEventListener('click', function() {
-  var v = document.getElementById('dniInput').value.trim(); if (v) buscar(v);
+document.getElementById('btnBuscar').addEventListener('click', function(){
+  var v=document.getElementById('dniInput').value.trim(); if(v) buscar(v);
 });
-document.getElementById('dniInput').addEventListener('keydown', function(e) {
-  if (e.key === 'Enter') { var v = e.target.value.trim(); if (v) buscar(v); }
+document.getElementById('dniInput').addEventListener('keydown', function(e){
+  if(e.key==='Enter'){ var v=e.target.value.trim(); if(v) buscar(v); }
 });
-document.getElementById('btnLimpiar').addEventListener('click', function() {
-  document.getElementById('dniInput').value = '';
-  document.getElementById('resultArea').innerHTML = '<div class="empty">Ingresá un DNI para consultar el historial</div>';
+document.getElementById('btnLimpiar').addEventListener('click', function(){
+  document.getElementById('dniInput').value='';
+  document.getElementById('resultArea').innerHTML='<div class="empty">Ingresá un DNI para consultar el historial</div>';
 });
 document.getElementById('btnActualizar').addEventListener('click', cargarDatos);
-
 cargarDatos();
 </script>
 </body>
