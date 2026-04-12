@@ -75,6 +75,7 @@ tbody tr:hover td{background:var(--bg2)}
   </div>
   <div class="nav-right">
     <a href="index.html" class="btn">&#8592; Ver paciente</a>
+    <button class="btn" id="btnRefresh">&#8635; Actualizar</button>
   </div>
 </nav>
 
@@ -305,6 +306,148 @@ function fd(v){
   if(isNaN(d)) return v;
   return d.toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'});
 }
+
+// ---- Actualización desde Google Sheets ----
+var API_URL = 'https://script.google.com/macros/s/AKfycbx3eiaKkIkNBHnRjMfF-uTBPgn_rVc9fPcjyDSa_IGjmc1uezZu96jhBZQg_mhrLQKD/exec';
+
+document.getElementById('btnRefresh').addEventListener('click', function() {
+  var btn = document.getElementById('btnRefresh');
+  btn.textContent = 'Cargando...';
+  btn.disabled = true;
+  fetch(API_URL + '?sheet=Recetas')
+    .then(function(r){ return r.json(); })
+    .then(function(recetas) {
+      return fetch(API_URL + '?sheet=RecetasProductos').then(function(r){ return r.json(); }).then(function(prods){
+        return {recetas: recetas, prods: prods};
+      });
+    })
+    .then(function(data) {
+      D.kpi = calcKPI(data.recetas, data.prods);
+      D.cat = calcCat(data.recetas, data.prods);
+      D.brechas_mes = calcBrechas(data.recetas);
+      D.trunc_list = calcTrunc(data.recetas);
+      D.dem_list = calcDem(data.recetas);
+      D.recurrencia = calcRecurrencia(data.recetas, D.meses);
+      D.prof_total = calcProf(data.recetas);
+      generalRendered = false;
+      renderGeneral();
+      btn.textContent = '✓ Actualizado';
+      setTimeout(function(){ btn.textContent = '↻ Actualizar'; btn.disabled = false; }, 2000);
+    })
+    .catch(function(err) {
+      btn.textContent = '↻ Actualizar'; btn.disabled = false;
+      alert('Error: ' + err.message);
+    });
+});
+
+function calcKPI(recs, prods) {
+  var MONTHS=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  function mo(s){var p=String(s||'').toLowerCase().split(' ');return(parseInt(p[1])||0)*12+MONTHS.indexOf(p[0]);}
+  var map = {};
+  recs.forEach(function(r){
+    var m = r['Mes-Año']; if(!m) return;
+    if(!map[m]) map[m]={mes:m,recetas:0,pacientes:{},prescripciones:0,volumen:0};
+    map[m].recetas++; map[m].pacientes[r['DNI']]=1;
+  });
+  prods.forEach(function(p){
+    var r = recs.find(function(r){return r['ID Receta']===p['ID Receta'];});
+    if(!r) return; var m=r['Mes-Año']; if(!m||!map[m]) return;
+    map[m].prescripciones++; map[m].volumen+=parseFloat(p['Cantidad Prescripta'])||0;
+  });
+  return Object.values(map).map(function(v){return {
+    'Mes-Año':v.mes, recetas:v.recetas,
+    pacientes:Object.keys(v.pacientes).length,
+    prescripciones:v.prescripciones, volumen:v.volumen
+  };}).sort(function(a,b){return mo(a['Mes-Año'])-mo(b['Mes-Año']);});
+}
+
+function calcCat(recs, prods) {
+  var MONTHS=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  function mo(s){var p=String(s||'').toLowerCase().split(' ');return(parseInt(p[1])||0)*12+MONTHS.indexOf(p[0]);}
+  var map = {};
+  prods.forEach(function(p){
+    var r=recs.find(function(r){return r['ID Receta']===p['ID Receta'];});
+    if(!r) return; var key=r['Mes-Año']+'|'+(p['Categoría']||'');
+    if(!map[key]) map[key]={'Mes-Año':r['Mes-Año'],'Categoría':p['Categoría']||'',n:0,vol:0};
+    map[key].n++; map[key].vol+=parseFloat(p['Cantidad Prescripta'])||0;
+  });
+  return Object.values(map).sort(function(a,b){return mo(a['Mes-Año'])-mo(b['Mes-Año']);});
+}
+
+function calcBrechas(recs) {
+  var MONTHS=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  function mo(s){var p=String(s||'').toLowerCase().split(' ');return(parseInt(p[1])||0)*12+MONTHS.indexOf(p[0]);}
+  var map = {};
+  recs.forEach(function(r){
+    var m=r['Mes-Año']; if(!m) return;
+    if(!map[m]) map[m]={mes:m,bg:[],br:[]};
+    var ini=r['Fecha Inicio Gestión'],dis=r['Fecha Producto Disponible'],ret=r['Fecha Retiro x Paciente'];
+    if(ini&&dis){var d=(new Date(dis)-new Date(ini))/86400000; if(!isNaN(d)) map[m].bg.push(d);}
+    if(dis&&ret){var d=(new Date(ret)-new Date(dis))/86400000; if(!isNaN(d)) map[m].br.push(d);}
+  });
+  return Object.values(map).map(function(v){
+    var avg=function(a){return a.length?Math.round(a.reduce(function(s,x){return s+x;},0)/a.length*10)/10:'';};
+    return {'Mes-Año':v.mes, avg_gest:avg(v.bg), avg_ret:avg(v.br)};
+  }).sort(function(a,b){return mo(a['Mes-Año'])-mo(b['Mes-Año']);});
+}
+
+function calcTrunc(recs) {
+  return recs.filter(function(r){return r['Fecha Producto Disponible']&&r['Fecha Producto Disponible'].trim()&&(!r['Fecha Retiro x Paciente']||!r['Fecha Retiro x Paciente'].trim());});
+}
+
+function calcDem(recs) {
+  var today = new Date();
+  return recs.filter(function(r){
+    if(r['Fecha Producto Disponible']&&r['Fecha Producto Disponible'].trim()) return false;
+    var rec=new Date(r['Fecha Recepción']); if(isNaN(rec)) return false;
+    return (today-rec)/86400000 > 15;
+  }).map(function(r){
+    var rec=new Date(r['Fecha Recepción']);
+    return Object.assign({},r,{dias_rec:Math.floor((today-rec)/86400000)});
+  }).sort(function(a,b){return b.dias_rec-a.dias_rec;});
+}
+
+function calcRecurrencia(recs, meses) {
+  var MONTHS=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  function mo(s){var p=String(s||'').toLowerCase().split(' ');return(parseInt(p[1])||0)*12+MONTHS.indexOf(p[0]);}
+  var map={};
+  recs.forEach(function(r){
+    var d=r['DNI']; if(!d) return;
+    if(!map[d]) map[d]={DNI:d,ap:r['Apellidos']||'',nom:r['Nombres']||'',n:0,mesesMap:{}};
+    map[d].n++; if(r['Mes-Año']) map[d].mesesMap[r['Mes-Año']]=1;
+  });
+  return Object.values(map).map(function(v){
+    var ms=Object.keys(v.mesesMap).sort(function(a,b){return mo(a)-mo(b);});
+    return {DNI:v.DNI,ap:v.ap,nom:v.nom,n:v.n,meses:ms,nm:ms.length,pct:Math.round(ms.length/meses.length*100)};
+  }).sort(function(a,b){return b.n-a.n;}).slice(0,30);
+}
+
+function calcProf(recs) {
+  var norm=function(m){
+    m=(m||'').trim().toUpperCase();
+    if(!m) return null;
+    if(m.indexOf('PACCAS')>=0) return 'Paccasassi Alejandro';
+    if(m.indexOf('GUERRERO')>=0) return 'Guerrero Laura';
+    if(m.indexOf('BENITEZ')>=0||m.indexOf('BENÍTEZ')>=0) return 'Benítez Guido';
+    if(m.indexOf('CHECO')>=0||m.indexOf('CHECCO')>=0) return 'Checo Rossi';
+    if(m.indexOf('AMARO')>=0) return 'Amaro Silvia';
+    if(m.indexOf('RODRIGUEZ')>=0) return 'Rodríguez Patricia';
+    if(m.indexOf('CHIESA')>=0) return 'Chiesa Candelaria';
+    if(m.indexOf('ESPINOLA')>=0) return 'Espínola Luis';
+    if(m.indexOf('ROMAN')>=0) return 'Román Adrián';
+    return m.charAt(0)+m.slice(1).toLowerCase();
+  };
+  var map={};
+  recs.forEach(function(r){
+    var med=norm(r['Médico']); if(!med) return;
+    if(!map[med]) map[med]={Medico:med,recetas:0,pacs:{},mesesMap:{}};
+    map[med].recetas++; map[med].pacs[r['DNI']]=1; if(r['Mes-Año']) map[med].mesesMap[r['Mes-Año']]=1;
+  });
+  return Object.values(map).map(function(v){
+    return {Medico:v.Medico,recetas:v.recetas,pacientes:Object.keys(v.pacs).length,meses_act:Object.keys(v.mesesMap).length};
+  }).sort(function(a,b){return b.recetas-a.recetas;});
+}
+
 </script>
 </body>
 </html>
